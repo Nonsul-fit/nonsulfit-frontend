@@ -1,5 +1,3 @@
-import React from "react";
-
 interface SelectionCardProps {
   title: string;
   icon?: string;
@@ -22,20 +20,23 @@ const SelectionCard = ({
       3: "sm:grid-cols-3",
       4: "sm:grid-cols-4",
     }[options.length] || "sm:grid-cols-3";
+
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-      {/* 상단 타이틀 영역 */}
-      <div className="mb-6 flex items-center gap-2">
+    <div className="rounded-xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
+      <div className="mb-4 sm:mb-6 flex items-center gap-2">
         {icon && (
-          <div className="flex h-8 w-8 items-center justify-center rounded text-sm">
+          <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded text-xs sm:text-sm">
             {icon}
           </div>
         )}
-        <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+
+        <h3 className="text-base sm:text-lg font-bold text-gray-800 tracking-tight">
+          {title}
+        </h3>
       </div>
 
       {/* 옵션 버튼 그리드 */}
-      <div className={`grid grid-cols-1 gap-3 ${gridCols}`}>
+      <div className={`grid grid-cols-1 gap-2.5 sm:gap-3 ${gridCols}`}>
         {options.map((option) => {
           const isSelected = value === option;
           return (
@@ -43,7 +44,7 @@ const SelectionCard = ({
               key={option}
               type="button"
               onClick={() => onChange(option)}
-              className={`rounded-lg border-2 py-4 text-sm font-bold transition-all active:scale-[0.98]
+              className={`rounded-lg border-2 py-3 text-xs sm:py-4 sm:text-sm font-bold tracking-tight transition-all active:scale-[0.98] break-keep
                 ${
                   isSelected
                     ? "border-[#4d6094] bg-[#ebf2fb] text-pri"

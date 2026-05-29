@@ -1,26 +1,32 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import SelectionCard from "../../components/molecules/SelectionCard";
-import StepHeader from "../../components/molecules/StepHeader";
 import Input from "../../components/atoms/Input";
-import StepNavigation from "../../components/molecules/StepNavigation";
+import SelectionCard from "../../components/molecules/step/SelectionCard";
+import StepHeader from "../../components/molecules/step/StepHeader";
+import StepNavigation from "../../components/molecules/step/StepNavigation";
 import FormCard from "../../components/organisms/FormCard";
+import { useFormContext } from "../../context/FormContext";
+import { useFormValidation } from "../../hooks/useFormValidation";
 
 const Step01 = () => {
-  const navigate = useNavigate();
+  const { validateRequired } = useFormValidation();
 
-  const [studentInfo, setStudentInfo] = useState({
-    status: "재학생",
-    track: "",
-    major: "",
-    targetRegion: "서울·수도권",
-    period: "",
-  });
+  const { studentInfo, setStudentInfo } = useFormContext();
 
   const handleUpdate = (field: string, val: string) => {
-    setStudentInfo((prev) => ({ ...prev, [field]: val }));
+    setStudentInfo((prev: any) => ({ ...prev, [field]: val }));
   };
 
+  const handleNextStep = () => {
+    const requiredFields = {
+      status: studentInfo.status,
+      track: studentInfo.track,
+      targetRegion: studentInfo.targetRegion,
+    };
+
+    return validateRequired(
+      requiredFields,
+      "딱 맞는 입시 전략을 위해 모든 기본 정보를 입력해주세요.",
+    );
+  };
   return (
     <div className="mx-auto max-w-4xl">
       <StepHeader
@@ -65,7 +71,10 @@ const Step01 = () => {
         />
       </div>
 
-      <StepNavigation nextPath="/step02"></StepNavigation>
+      <StepNavigation
+        nextPath="/step02"
+        onNext={handleNextStep}
+      ></StepNavigation>
     </div>
   );
 };

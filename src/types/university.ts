@@ -14,7 +14,6 @@ export interface UniversityProgram {
     difficulty_score: number | null;
     essay_complexity_score: number;
     recommendation_difficulty_score: number;
-    // ... 나머지 숫자 필드들
   };
   text: {
     comment: string | null;

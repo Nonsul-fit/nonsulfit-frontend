@@ -1,63 +1,125 @@
-import React, { useState } from "react";
-import StepHeader from "../../components/molecules/StepHeader";
-import FormCard from "../../components/organisms/FormCard";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Input from "../../components/atoms/Input";
-import StepNavigation from "../../components/molecules/StepNavigation";
-import ScoreInputBox from "../../components/molecules/ScoreInputBox";
-
-interface DetailedScore {
-  grade: string;
-  percentile: string;
-  standardScore: string;
-}
-
-interface MockExamSlot {
-  examType: string;
-  year: string;
-  korean: DetailedScore;
-  math: DetailedScore;
-  english: string;
-  inquiry1: string;
-  inquiry2: string;
-}
+import ScoreInputBox from "../../components/molecules/step/ScoreInputBox";
+import StepHeader from "../../components/molecules/step/StepHeader";
+import StepNavigation from "../../components/molecules/step/StepNavigation";
+import FormCard from "../../components/organisms/FormCard";
+import { useFormContext } from "../../context/FormContext";
+import { useFormValidation } from "../../hooks/useFormValidation";
+import type { MockExamSlot } from "../../types/admission";
+import { saveInputData } from "../../types/nonsulService";
 
 const Step03 = () => {
   const [activeTab, setActiveTab] = useState<number>(0);
-
-  const [academicInfo, setAcademicInfo] = useState({
-    gpaCore: "",
-    gpaAll: "",
-
-    mockExams: [
-      createEmptyExamSlot(),
-      createEmptyExamSlot(),
-      createEmptyExamSlot(),
-    ] as MockExamSlot[],
-  });
-
-  // 초기 빈 주머니 생성기
-  function createEmptyExamSlot(): MockExamSlot {
-    return {
-      examType: "6모",
-      year: "2026",
-      korean: { grade: "", percentile: "", standardScore: "" },
-      math: { grade: "", percentile: "", standardScore: "" },
-      english: "",
-      inquiry1: "",
-      inquiry2: "",
-    };
-  }
+  const navigate = useNavigate();
+  const { validateRequired } = useFormValidation();
+  const { studentInfo, essayInfo, academicInfo, setAcademicInfo } =
+    useFormContext();
 
   const handleGpaUpdate = (field: string, val: string) => {
-    setAcademicInfo((prev) => ({ ...prev, [field]: val }));
+    setAcademicInfo((prev: any) => ({ ...prev, [field]: val }));
   };
 
   const handleMockUpdate = (updater: (draft: MockExamSlot) => void) => {
-    setAcademicInfo((prev) => {
+    setAcademicInfo((prev: any) => {
       const newMockExams = [...prev.mockExams];
-      updater(newMockExams[activeTab]);
+      const deepCopiedExam = structuredClone(newMockExams[activeTab]);
+      updater(deepCopiedExam);
+      newMockExams[activeTab] = deepCopiedExam;
       return { ...prev, mockExams: newMockExams };
     });
+  };
+
+  const handleFinalSubmit = () => {
+    const requiredFields: Record<string, any> = {
+      gpaCore: academicInfo.gpaCore,
+      gpaAll: academicInfo.gpaAll,
+    };
+
+    academicInfo.mockExams.forEach((exam: MockExamSlot, idx: number) => {
+      requiredFields[`exam_${idx}_year`] = exam.year;
+      requiredFields[`exam_${idx}_korean_grade`] = exam.korean.grade;
+      requiredFields[`exam_${idx}_korean_percentile`] = exam.korean.percentile;
+      requiredFields[`exam_${idx}_korean_standardScore`] =
+        exam.korean.standardScore;
+      requiredFields[`exam_${idx}_math_grade`] = exam.math.grade;
+      requiredFields[`exam_${idx}_math_percentile`] = exam.math.percentile;
+      requiredFields[`exam_${idx}_math_standardScore`] =
+        exam.math.standardScore;
+      requiredFields[`exam_${idx}_english`] = exam.english;
+      requiredFields[`exam_${idx}_inquiry1`] = exam.inquiry1;
+      requiredFields[`exam_${idx}_inquiry2`] = exam.inquiry2;
+    });
+
+    const isValid = validateRequired(
+      requiredFields,
+      "정확한 합격 진단을 위해 내신 등급과 3개 회차의 모든 성적 항목을 입력해 주세요.",
+    );
+
+    if (!isValid) return false;
+
+    const convertExamMonth = (type: string) => {
+      if (type === "3모") return 3;
+      if (type === "6모") return 6;
+      if (type === "9모") return 9;
+      if (type === "수능") return 11;
+      return 11;
+    };
+
+    const formattedPayload = {
+      student: {
+        grade: 3,
+        repeatYear: studentInfo.status === "재학생" ? 0 : 1,
+        academic: studentInfo.track,
+        desiredDepartment: studentInfo.major,
+        desiredArea: studentInfo.targetRegion,
+      },
+
+      essayCompetency: {
+        reading: Number(essayInfo.reading) || 0,
+        contentComprehension: Number(essayInfo.content_understanding) || 0,
+        structure: Number(essayInfo.structure) || 0,
+        express: Number(essayInfo.expression) || 0,
+        understanding: Number(essayInfo.prompt_understanding) || 0,
+        chartPreference: Number(essayInfo.chart_score) || 1,
+        englishPreference: Number(essayInfo.english_passage_score) || 1,
+        mathPreference: Number(essayInfo.math_question_score) || 1,
+        comment: essayInfo.feedback || "",
+      },
+
+      schoolGrade: {
+        majorGrade: Number(academicInfo.gpaCore) || 0,
+        allGrade: Number(academicInfo.gpaAll) || 0,
+      },
+
+      testGrades: academicInfo.mockExams.map((exam: MockExamSlot) => ({
+        year: Number(exam.year) || 0,
+        month: convertExamMonth(exam.examType),
+        koreanGrade: Number(exam.korean.grade) || 0,
+        koreanPercent: Number(exam.korean.percentile) || 0,
+        koreanStandardScore: Number(exam.korean.standardScore) || 0,
+        mathGrade: Number(exam.math.grade) || 0,
+        mathPercent: Number(exam.math.percentile) || 0,
+        mathStandardScore: Number(exam.math.standardScore) || 0,
+        englishGrade: Number(exam.english) || 0,
+        inquiry1Grade: Number(exam.inquiry1) || 0,
+        inquiry2Grade: Number(exam.inquiry2) || 0,
+      })),
+    };
+
+    saveInputData(formattedPayload)
+      .then(() => {
+        navigate("/loading");
+      })
+      .catch((error) => {
+        console.error("백엔드 전송 중 에러 발생:", error);
+        alert(
+          "성적 제출 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        );
+      });
+
+    return false;
   };
 
   const currentExam = academicInfo.mockExams[activeTab];
@@ -95,10 +157,9 @@ const Step03 = () => {
           </div>
         </FormCard>
 
-        {/*  2. 수능 및 모의고사 성적 카드 */}
+        {/* 2. 수능 및 모의고사 성적 카드 */}
         <FormCard title="수능 / 모의고사 성적 (최근 3개 회차)" icon="⏱️">
           <div className="space-y-6 p-2">
-            {/* 🚀 회차 선택 세그먼트 탭 */}
             <div className="flex rounded-xl bg-gray-100 p-1">
               {[0, 1, 2].map((idx) => (
                 <button
@@ -116,9 +177,8 @@ const Step03 = () => {
               ))}
             </div>
 
-            {/* ⚙️ 선택 영역 A: 시험 종류 및 응시년도 세팅 라인 */}
+            {/* 시험 종류 및 응시년도 */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-              {/* 시험 종류 캡슐 스위치 */}
               <div className="flex items-center gap-3">
                 <span className="text-sm font-bold text-gray-700">
                   시험 종류
@@ -166,11 +226,11 @@ const Step03 = () => {
               </div>
             </div>
 
-            {/* 🧮 선택 영역 B: 과목별 세부 점수 입력 매트릭스 */}
+            {/* 과목별 세부 점수 */}
             <div className="space-y-4">
-              {/* 국어 영역 (3개 칸 세트) */}
+              {/* 국어 영역*/}
               <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4 rounded-xl border border-gray-200 p-4">
-                <span className="text-sm font-bold text-gray-800 border-r border-gray-100 sm:pr-2">
+                <span className="text-sm font-bold text-gray-800 sm:pr-2">
                   국어 영역
                 </span>
                 <div className="sm:col-span-3 grid grid-cols-3 gap-3">
@@ -207,9 +267,9 @@ const Step03 = () => {
                 </div>
               </div>
 
-              {/* 수학 영역 (3개 칸 세트) */}
+              {/* 수학 영역*/}
               <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4 rounded-xl border border-gray-200 p-4">
-                <span className="text-sm font-bold text-gray-800 border-r border-gray-100 sm:pr-2">
+                <span className="text-sm font-bold text-gray-800 sm:pr-2">
                   수학 영역
                 </span>
                 <div className="sm:col-span-3 grid grid-cols-3 gap-3">
@@ -246,7 +306,7 @@ const Step03 = () => {
                 </div>
               </div>
 
-              {/* 영어 및 탐구 영역 (1개 등급 칸만 세로 배치) */}
+              {/* 영어 및 탐구 영역 */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4">
                   <span className="text-xs font-bold text-gray-700">
@@ -305,8 +365,11 @@ const Step03 = () => {
         </FormCard>
       </div>
 
-      {/* 완료 버튼을 누르면 대시보드나 결과 리포트창으로 유도 */}
-      <StepNavigation nextPath="/dashboard" />
+      <StepNavigation
+        nextPath="/loading"
+        onNext={handleFinalSubmit}
+        nextLabel="제출하기"
+      />
     </div>
   );
 };

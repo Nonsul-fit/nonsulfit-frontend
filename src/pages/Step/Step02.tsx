@@ -1,31 +1,36 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import SelectionCard from "../../components/molecules/SelectionCard";
-import StepHeader from "../../components/molecules/StepHeader";
-import Input from "../../components/atoms/Input";
-import StepNavigation from "../../components/molecules/StepNavigation";
+import ScoreInputBox from "../../components/molecules/step/ScoreInputBox";
+import StepHeader from "../../components/molecules/step/StepHeader";
+import StepNavigation from "../../components/molecules/step/StepNavigation";
 import FormCard from "../../components/organisms/FormCard";
-import ScoreInputBox from "../../components/molecules/ScoreInputBox";
+import { useFormContext } from "../../context/FormContext";
+import { useFormValidation } from "../../hooks/useFormValidation";
 
 const Step02 = () => {
-  const navigate = useNavigate();
+  const { validateRequired } = useFormValidation();
 
-  const [essayInfo, setEssayInfo] = useState({
-    reading: "",
-    content_understanding: "",
-    structure: "",
-    expression: "",
-    prompt_understanding: "",
-    chart_score: 0,
-    english_passage_score: 0,
-    math_question_score: 0,
-    feedback: "",
-  });
+  const { essayInfo, setEssayInfo } = useFormContext();
 
   const handleUpdate = (field: string, val: string | number) => {
-    setEssayInfo((prev) => ({ ...prev, [field]: val }));
+    setEssayInfo((prev: any) => ({ ...prev, [field]: val }));
   };
 
+  const handleNextStep = () => {
+    const requiredFields = {
+      reading: essayInfo.reading,
+      content_understanding: essayInfo.content_understanding,
+      structure: essayInfo.structure,
+      expression: essayInfo.expression,
+      prompt_understanding: essayInfo.prompt_understanding,
+      chart_score: essayInfo.chart_score,
+      english_passage_score: essayInfo.english_passage_score,
+      math_question_score: essayInfo.math_question_score,
+    };
+
+    return validateRequired(
+      requiredFields,
+      "정확한 분석을 위해 모든 역량 점수와 선호 유형을 선택해 주세요.",
+    );
+  };
   return (
     <div className="mx-auto max-w-4xl">
       <StepHeader
@@ -35,6 +40,7 @@ const Step02 = () => {
         description="논술 역량 분석을 위해 내용을 입력해주세요."
       />
       <div className="space-y-6">
+        {/*1. 세부 논술 역량 점수 */}
         <FormCard
           title="세부 논술 역량 점수"
           icon="📊"
@@ -59,7 +65,7 @@ const Step02 = () => {
             ))}
           </div>
         </FormCard>
-
+        {/* 2. 선호 논술 유형 */}
         <FormCard
           title="선호 논술 유형"
           icon="🧩"
@@ -73,7 +79,7 @@ const Step02 = () => {
             ].map((item) => (
               <div
                 key={item.key}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-[#fbf9fa]" // 🚀 bg- 임의 코드 문법 오타 수정
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white" //
               >
                 <span className="text-sm font-bold text-gray-700">
                   {item.label}
@@ -92,7 +98,7 @@ const Step02 = () => {
                         className={`w-20 py-2 text-xs font-bold rounded-lg border-2 duration-200 transition-all ${
                           isSelected
                             ? "border-primary bg-blue-50 text-primary"
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                            : "border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                         }`}
                       >
                         {scoreValue}점
@@ -104,7 +110,6 @@ const Step02 = () => {
             ))}
           </div>
         </FormCard>
-
         {/* 3. 선생님 첨삭 총평 입력 */}
         <FormCard title="선생님 첨삭 총평" icon="✏️">
           <textarea
@@ -117,7 +122,10 @@ const Step02 = () => {
           />
         </FormCard>
       </div>{" "}
-      <StepNavigation nextPath="/step03"></StepNavigation>
+      <StepNavigation
+        nextPath="/step03"
+        onNext={handleNextStep}
+      ></StepNavigation>
     </div>
   );
 };

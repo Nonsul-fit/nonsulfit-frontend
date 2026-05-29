@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "../../hooks/useForm";
 import { checkEmail, register } from "../../api/auth";
-import Input from "../../components/atoms/Input";
 import Button from "../../components/atoms/Button";
+import Input from "../../components/atoms/Input";
+import { useForm } from "../../hooks/useForm";
 import AuthLayout from "../../layouts/AuthLayout";
 
 const SignupPage = () => {
@@ -11,7 +11,7 @@ const SignupPage = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { values, handleChange, setValues } = useForm({
+  const { values, handleChange } = useForm({
     name: "",
     email: "",
     password: "",
@@ -37,10 +37,8 @@ const SignupPage = () => {
     }
 
     try {
-      // 1. 서버가 준 전체 상자(객체)를 통째로 받습니다.
       const result = await checkEmail(values.email);
 
-      // 2. 상자 안에서 명세서에 있던 진짜 알맹이(.isDuplicate)를 꺼내 비교합니다!
       if (result.isDuplicate === true) {
         setEmailStatus("ERROR");
         setEmailMessage("이미 사용 중인 이메일입니다.");
@@ -49,7 +47,6 @@ const SignupPage = () => {
         setEmailMessage("사용 가능한 이메일입니다!");
       }
     } catch (error) {
-      // 혹시 모를 네트워크 에러까지 안전하게
       console.error("중복체크 에러:", error);
       setEmailStatus("ERROR");
       setEmailMessage("서버 연결에 실패했습니다.");
@@ -96,6 +93,12 @@ const SignupPage = () => {
       )}
     </div>
   );
+
+  const isPasswordValid = (password: string) => {
+    const passwordRegex =
+      /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\- =]).{8,20}$/;
+    return passwordRegex.test(password);
+  };
 
   return (
     <AuthLayout>
@@ -150,15 +153,15 @@ const SignupPage = () => {
             type="password"
             value={values.password}
             onChange={handleChange}
-            placeholder="8자 이상 입력"
+            placeholder="영문, 숫자, 특수문자 조합 8~20자 입력해주세요"
           />
           <MessageSlot
             status={
-              values.password.length > 0 && values.password.length < 8
+              values.password.length > 0 && !isPasswordValid(values.password)
                 ? "ERROR"
                 : "IDLE"
             }
-            message="8자 이상 입력해주세요."
+            message="영문, 숫자, 특수문자 조합 8~20자 입력해주세요."
           />
         </div>
 
@@ -194,7 +197,6 @@ const SignupPage = () => {
           가입하기
         </Button>
       </form>
-      {/* 🚀 4. 구분선 및 하단 버튼 정리 */}
       <div className="my-8 flex items-center gap-4">
         <div className="h-[1px] flex-1 bg-gray-100"></div>
         <span className="text-xs text-gray-400 font-medium">또는</span>
@@ -212,7 +214,6 @@ const SignupPage = () => {
           </Button>
         </p>
       </div>
-      {/* 성공 모달 로직 (AuthLayout 내부 하단에 위치) */}
       {isComplete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="w-full max-w-[360px] rounded-3xl bg-white p-8 text-center shadow-2xl animate-in zoom-in duration-300">

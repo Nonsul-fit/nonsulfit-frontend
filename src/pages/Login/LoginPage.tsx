@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "../../hooks/useForm";
 import api from "../../api/axios";
-import Input from "../../components/atoms/Input";
 import Button from "../../components/atoms/Button";
+import Input from "../../components/atoms/Input";
+import { useForm } from "../../hooks/useForm";
 import AuthLayout from "../../layouts/AuthLayout";
 
 const LoginPage = () => {
@@ -92,7 +92,6 @@ const LoginPage = () => {
         </Button>
       </form>
 
-      {/* 하단 영역 (AuthLayout 내부의 children으로 포함됨) */}
       <div className="my-8 flex items-center gap-4">
         <div className="h-[1px] flex-1 bg-gray-100"></div>
         <span className="text-xs text-gray-400 font-medium">또는</span>

@@ -1,17 +1,26 @@
-// src/components/molecules/StepNavigation.tsx
-import React from "react";
 import { useNavigate } from "react-router-dom";
 
 interface StepNavigationProps {
   nextPath: string;
+  nextLabel?: string;
   isNextDisabled?: boolean;
+  onNext?: () => boolean;
 }
 
 const StepNavigation = ({
   nextPath,
+  nextLabel = "다음 →",
   isNextDisabled = false,
+  onNext,
 }: StepNavigationProps) => {
   const navigate = useNavigate();
+
+  const handleNextClick = () => {
+    if (onNext && !onNext()) {
+      return;
+    }
+    navigate(nextPath);
+  };
 
   return (
     <div className="mt-12 flex justify-between gap-4">
@@ -24,7 +33,7 @@ const StepNavigation = ({
       </button>
       <button
         type="button"
-        onClick={() => navigate(nextPath)}
+        onClick={handleNextClick}
         disabled={isNextDisabled}
         className={`rounded-xl duration-200 px-8 py-4 font-bold text-white shadow-lg transition-hover ${
           isNextDisabled
@@ -32,7 +41,7 @@ const StepNavigation = ({
             : "bg-primary shadow-primary-200 hover:bg-[#334a8c]"
         }`}
       >
-        다음 →
+        {nextLabel}
       </button>
     </div>
   );

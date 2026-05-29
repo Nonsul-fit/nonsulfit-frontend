@@ -1,4 +1,3 @@
-// src/components/molecules/FormCard.tsx
 import React from "react";
 
 interface FormCardProps {
@@ -11,7 +10,6 @@ interface FormCardProps {
 const FormCard = ({ title, icon, badge, children }: FormCardProps) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-      {/* 카드 상단 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-gray-50 pb-3">
         <div className="flex items-center gap-2">
           {icon && <span className="text-xl mr-1">{icon}</span>}
