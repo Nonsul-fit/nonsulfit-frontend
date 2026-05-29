@@ -17,6 +17,9 @@ const Step03 = () => {
   const { studentInfo, essayInfo, academicInfo, setAcademicInfo } =
     useFormContext();
 
+  // 💡 1단계: 백엔드 에러 메시지를 담아둘 바구니(State) 추가
+  const [serverError, setServerError] = useState<string>("");
+
   const handleGpaUpdate = (field: string, val: string) => {
     setAcademicInfo((prev: any) => ({ ...prev, [field]: val }));
   };
@@ -32,6 +35,9 @@ const Step03 = () => {
   };
 
   const handleFinalSubmit = () => {
+    // 💡 제출 시작할 때 기존 에러 메시지 초기화
+    setServerError("");
+
     const requiredFields: Record<string, any> = {
       gpaCore: academicInfo.gpaCore,
       gpaAll: academicInfo.gpaAll,
@@ -112,11 +118,28 @@ const Step03 = () => {
       .then(() => {
         navigate("/loading");
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error("백엔드 전송 중 에러 발생:", error);
-        alert(
-          "성적 제출 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-        );
+
+        // 💡 2단계: 백엔드 400 입력 양식 에러 가로채기 파트
+        if (error.response?.status === 400) {
+          const backendMessage = error.response.data?.message || "";
+
+          if (backendMessage.includes("greater than 100")) {
+            setServerError(
+              "⚠️ 백분위 점수는 100을 초과하여 입력할 수 없습니다. 입력하신 회차별 백분위를 다시 확인해 주세요.",
+            );
+          } else {
+            setServerError(
+              `⚠️ 입력 정보 형식이 올바르지 않습니다. (${backendMessage})`,
+            );
+          }
+        } else {
+          // 500 에러 등 기타 서버 오류 예외 처리
+          setServerError(
+            "⚠️ 성적 제출 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+          );
+        }
       });
 
     return false;
@@ -244,9 +267,12 @@ const Step03 = () => {
                       })
                     }
                   />
+                  {/* 💡 국어 백분위 제한 추가 (min, max) */}
                   <Input
                     placeholder="백분위"
                     type="number"
+                    min={0}
+                    max={100}
                     value={currentExam.korean.percentile}
                     onChange={(e) =>
                       handleMockUpdate((draft) => {
@@ -283,9 +309,12 @@ const Step03 = () => {
                       })
                     }
                   />
+                  {/* 💡 수학 백분위 제한 추가 (min, max) */}
                   <Input
                     placeholder="백분위"
                     type="number"
+                    min={0}
+                    max={100}
                     value={currentExam.math.percentile}
                     onChange={(e) =>
                       handleMockUpdate((draft) => {
@@ -364,6 +393,13 @@ const Step03 = () => {
           </div>
         </FormCard>
       </div>
+
+      {/* 💡 3단계: 제출 버튼 바로 위에 노출되는 예쁜 빨간색 디자이너 경고 배너 구역 */}
+      {serverError && (
+        <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center text-sm font-semibold text-red-500 animate-pulse">
+          {serverError}
+        </div>
+      )}
 
       <StepNavigation
         nextPath="/loading"
