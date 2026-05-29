@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom"; // 💡 1. 맨 끝에 Navigate 추가!
 import "./App.css";
 import { FormProvider } from "./context/FormContext";
 import MainLayout from "./layouts/MainLayout";
@@ -16,6 +16,8 @@ function App() {
       <BrowserRouter>
         <FormProvider>
           <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
 
