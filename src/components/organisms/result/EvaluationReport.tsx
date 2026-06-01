@@ -1,8 +1,7 @@
-import type { UniversityReport } from "../../../pages/Result/mockResultData";
 import Card from "../../atoms/Card";
 
 interface EvaluationReportProps {
-  currentUniversity: UniversityReport;
+  currentUniversity: any;
 }
 
 const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
@@ -13,22 +12,22 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
   const metrics = [
     {
       label: "나의 총점",
-      value: `${summary.myTotalScore}점`,
+      value: `${summary?.myTotalScore ?? 0}점`,
       color: "text-gray-800",
     },
     {
       label: "수능최저 여부",
-      value: summary.isCsatComplied ? "O" : "X",
-      color: summary.isCsatComplied ? "text-blue-600" : "text-red-500",
+      value: summary?.csatRequirement?.includes("없음") ? "X" : "O",
+      color: "text-gray-800",
     },
     {
       label: "경쟁률",
-      value: `${summary.latestCompetitionRate} : 1`,
+      value: `${summary?.latestCompetitionRate ?? 0} : 1`,
       color: "text-gray-800",
     },
     {
       label: "예상 합격 확률",
-      value: `${summary.passProbability}%`,
+      value: `${summary?.passProbability ?? 0}%`,
       color: "text-gray-800",
     },
   ];
@@ -46,45 +45,45 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
         <div className="space-y-4 flex-1 flex flex-col justify-between">
           {/* 1. 대학교 선정 이유 */}
           <section>
-            <h4 className="text-[14px] font-extrabold text-primary uppercase  mb-1.5 flex items-center gap-2">
+            <h4 className="text-[14px] font-extrabold text-primary uppercase mb-1.5 flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
               대학교 선정 이유
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations.selectionReason}
+              {explanations?.selectionReason || "선정 이유 정보가 없습니다."}
             </div>
           </section>
 
           {/* 2. 논술 첨삭 총평 */}
           <section>
-            <h4 className="text-[14px] font-extrabold text-primary uppercase  mb-2 flex items-center gap-2">
+            <h4 className="text-[14px] font-extrabold text-primary uppercase mb-2 flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-primary rounded-full" /> 논술 첨삭
               총평
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations.essayFeedback}
+              {explanations?.essayFeedback || "첨삭 총평 정보가 없습니다."}
             </div>
           </section>
 
           {/* 3. 대학교 입시 전략 */}
           <section>
-            <h4 className="text-[14px]  font-extrabold text-primary uppercase  mb-2 flex items-center gap-2">
+            <h4 className="text-[14px] font-extrabold text-primary uppercase mb-2 flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-primary rounded-full" /> 대학교
               입시 전략
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations.entranceStrategy}
+              {explanations?.entranceStrategy || "입시 전략 정보가 없습니다."}
             </div>
           </section>
 
           {/* 4. 추천 학과 */}
           <section>
-            <h4 className="text-[14px]   font-extrabold text-primary uppercase  mb-2 flex items-center gap-2">
+            <h4 className="text-[14px] font-extrabold text-primary uppercase mb-2 flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-primary rounded-full" /> 학과 추천
             </h4>
-
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations.departmentRecommendation}
+              {explanations?.departmentRecommendation ||
+                "추천 학과 정보가 없습니다."}
             </div>
           </section>
         </div>
@@ -102,7 +101,7 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               {item.label}
             </span>
             <span
-              className={`text-2xl md:text-3xl text-gray-800 font-black ${item.color} tracking-tighter`}
+              className={`text-2xl md:text-3xl font-black ${item.color} tracking-tighter`}
             >
               {item.value}
             </span>

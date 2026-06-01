@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { getResultData } from "../types/nonsulService";
+import api from "../api/axios";
 import type { FilterType } from "../components/molecules/result/ResultHeader";
 
 export const useNonsulResult = (filter: FilterType) => {
+  const { id: urlId } = useParams<{ id: string }>(); // 주소창에서 ID 가로채기
   const [universityList, setUniversityList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -10,11 +13,33 @@ export const useNonsulResult = (filter: FilterType) => {
     const fetchBackendData = async () => {
       setIsLoading(true);
       try {
+        let targetId = urlId;
+
+        if (!targetId) {
+          const listResponse = await api.get("/nonsulfit/result");
+          const reports = listResponse.data?.result || [];
+
+          if (reports.length === 0) {
+            setUniversityList([]);
+            setIsLoading(false);
+            return;
+          }
+
+          // 존재하는 리포트 ID들 중 가장 숫자가 큰 것(즉, 방금 생성된 최신 리포트)을 골라냅니다.
+          const maxId = Math.max(...reports.map((r: any) => Number(r.id)));
+          targetId = String(maxId);
+        }
+
         let backendCategory = "RISKY";
         if (filter === "적정") backendCategory = "MODERATE";
         if (filter === "하향") backendCategory = "SAFE";
 
-        const response = (await getResultData(backendCategory, "6")) as any;
+        // 💡 알아낸 최신 targetId를 조립해서 상세 데이터를 완벽하게 호출합니다!
+        const response = (await getResultData(
+          targetId,
+          backendCategory,
+          "6",
+        )) as any;
         const backendList = response.result || [];
 
         if (backendList.length === 0) {
@@ -108,12 +133,12 @@ export const useNonsulResult = (filter: FilterType) => {
       } catch (e) {
         console.error("결과 리포트 연동 실패:", e);
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // 💥 어떤 상황이 오든 무조건 로딩 바를 꺼줍니다!
       }
     };
 
     fetchBackendData();
-  }, [filter]);
+  }, [filter, urlId]);
 
   return { universityList, isLoading };
 };

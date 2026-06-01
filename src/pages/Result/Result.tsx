@@ -51,10 +51,17 @@ const Result = () => {
             currentUniversityList={universityList}
           />
 
-          <div className="flex justify-start pt-4">
+          <div className="flex justify-between items-center pt-4 w-full">
+            <button
+              onClick={() => navigate("/result")}
+              className="flex items-center gap-2 px-6 py-4 bg-white border border-gray-200 text-gray-500 font-bold text-medium rounded-xl hover:bg-gray-50 hover:text-gray-700 transition-all duration-200 shadow-sm"
+            >
+              분석 리스트 돌아가기
+            </button>
+
             <button
               onClick={() => navigate("/home")}
-              className="flex items-center gap-2 px-6 py-4 bg-white border border-gray-200 text-gray-500 font-bold text-medium rounded-xl hover:bg-gray-50 hover:text-gray-700 transition-all duration-200"
+              className="flex items-center gap-2 px-6 py-4 bg-white border border-gray-200 text-gray-500 font-bold text-medium rounded-xl hover:bg-gray-50 hover:text-gray-700 transition-all duration-200 shadow-sm"
             >
               <span>↩</span> 성적 다시 입력하기
             </button>

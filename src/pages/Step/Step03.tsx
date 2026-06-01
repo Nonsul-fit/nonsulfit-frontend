@@ -394,7 +394,6 @@ const Step03 = () => {
         </FormCard>
       </div>
 
-      {/* 💡 3단계: 제출 버튼 바로 위에 노출되는 예쁜 빨간색 디자이너 경고 배너 구역 */}
       {serverError && (
         <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center text-sm font-semibold text-red-500 animate-pulse">
           {serverError}

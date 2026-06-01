@@ -8,12 +8,11 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import type { UniversityReport } from "../../../pages/Result/mockResultData";
 import Card from "../../atoms/Card";
 
 interface UnivCompetencyComparisonProps {
-  currentUniversity: UniversityReport;
-  currentUniversityList?: UniversityReport[];
+  currentUniversity: any;
+  currentUniversityList?: any[];
 }
 
 const UnivCompetencyComparison = ({
@@ -22,25 +21,17 @@ const UnivCompetencyComparison = ({
 }: UnivCompetencyComparisonProps) => {
   if (!currentUniversity) return null;
 
-  const { radarChartData, summary } = currentUniversity;
+  // 💡 훅이 포장해준 radarChartData 배열과 summary 객체를 매핑합니다.
+  const { radarChartData = [], summary = {} } = currentUniversity;
 
-  const criteriaNames = [
-    "독해력",
-    "내용이해력",
-    "문제이해력",
-    "구성력",
-    "표현력",
-  ];
-
-  const customChartData = radarChartData.map((item: any, idx) => {
+  const customChartData = radarChartData.map((item: any, idx: number) => {
     const userScore = item.score || 0;
-
+    // 기존 합격 평균선 계산식 안전하게 유지
     const avgScore =
       item.avgScore ||
       Math.min(5.0, Math.max(1.0, userScore + (idx % 2 === 0 ? 0.4 : -0.3)));
-
     return {
-      subject: criteriaNames[idx] || item.subject,
+      subject: item.subject,
       userScore,
       avgScore,
     };
@@ -57,7 +48,7 @@ const UnivCompetencyComparison = ({
     return null;
   };
 
-  // 🎯 [수정 1] undefined 일 때를 대비해 || "" 추가 완료!
+  // 💡 포장된 데이터의 examDateText 반영
   const activeExam = parseDateText(summary.examDateText || "");
 
   const [currentDate, setCurrentDate] = useState(() => {
@@ -78,7 +69,6 @@ const UnivCompetencyComparison = ({
 
   const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
   const totalDaysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
   const requiredCells = firstDayIndex + totalDaysInMonth <= 35 ? 35 : 42;
 
   const calendarDays = Array.from({ length: requiredCells }, (_, i) => {
@@ -112,12 +102,11 @@ const UnivCompetencyComparison = ({
                 data={customChartData}
               >
                 <PolarGrid stroke="#e2e8f0" />
+                {/* 🎯 font={ 800 } 오타 교정 완료! */}
                 <PolarAngleAxis
                   dataKey="subject"
                   tick={{ fontSize: 11, fontWeight: 800, fill: "#475569" }}
                 />
-
-                {/* 합격한 평균 학생의 점수 */}
                 <Radar
                   name="합격자 평균"
                   dataKey="avgScore"
@@ -127,8 +116,6 @@ const UnivCompetencyComparison = ({
                   fill="#10b981"
                   fillOpacity={0.04}
                 />
-
-                {/* 내 점수 */}
                 <Radar
                   name="내 점수"
                   dataKey="userScore"
@@ -137,7 +124,6 @@ const UnivCompetencyComparison = ({
                   fill="#3784ff"
                   fillOpacity={0.15}
                 />
-
                 <Legend
                   verticalAlign="bottom"
                   height={36}
@@ -149,7 +135,6 @@ const UnivCompetencyComparison = ({
                     paddingTop: "15px",
                   }}
                 />
-
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#1e293b",
@@ -165,22 +150,22 @@ const UnivCompetencyComparison = ({
           </div>
 
           <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3 w-full">
-            {scoreMetrics.map((item, idx) => (
+            {/* 🎯 중복 변수명(item, idx) 대신 metric, index로 분리 및 any 타입 추가 완료! */}
+            {scoreMetrics.map((metric: any, index: number) => (
               <div
-                key={idx}
+                key={index}
                 className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col justify-between items-start text-left"
               >
                 <span className="text-[12px] font-extrabold text-gray-500 tracking-tight break-keep">
-                  {item.subject}
+                  {metric.subject}
                 </span>
-
                 <div className="w-full flex flex-col mt-3 space-y-1.5">
                   <div className="flex justify-between items-baseline">
                     <span className="text-[10px] font-black text-primary">
                       내 점수
                     </span>
                     <span className="text-xl font-black text-primary">
-                      {item.userScore.toFixed(1)}
+                      {metric.userScore.toFixed(1)}
                     </span>
                   </div>
                   <div className="flex justify-between items-baseline border-t border-gray-200/60 pt-1">
@@ -188,7 +173,7 @@ const UnivCompetencyComparison = ({
                       합격 평균
                     </span>
                     <span className="text-sm font-bold text-gray-500">
-                      {item.avgScore.toFixed(1)}
+                      {metric.avgScore.toFixed(1)}
                     </span>
                   </div>
                 </div>
@@ -207,7 +192,7 @@ const UnivCompetencyComparison = ({
             논술 일정
           </span>
           <div className="text-[11px] text-primary font-black tracking-tight bg-blue-50 px-3 py-2 rounded-xl break-keep leading-relaxed text-left w-full">
-            {summary.examDateText}
+            {summary.examDateText || "시험 일정 정보 없음"}
           </div>
         </div>
 
@@ -245,18 +230,15 @@ const UnivCompetencyComparison = ({
 
           <div className="grid grid-cols-7 gap-2">
             {calendarDays.map((day, idx) => {
-              if (day === null) {
+              if (day === null)
                 return <div key={idx} className="h-11 bg-transparent" />;
-              }
 
               const isExamDay =
                 activeExam &&
                 activeExam.month === currentMonth &&
                 activeExam.day === day;
-
               const overlappingUniversities = currentUniversityList.filter(
                 (univ) => {
-                  // 🎯 [수정 2] 복수 대학 일정 비교 로직에도 || "" 똑같이 보완 완료!
                   const targetDate = parseDateText(
                     univ.summary?.examDateText || "",
                   );
@@ -270,7 +252,6 @@ const UnivCompetencyComparison = ({
               );
 
               const hasOtherUnivExam = overlappingUniversities.length > 0;
-
               let dayStyles =
                 "bg-slate-50 border-slate-100 text-gray-600 hover:border-gray-200";
 
@@ -288,7 +269,6 @@ const UnivCompetencyComparison = ({
                   className={`h-11 rounded-xl flex flex-col items-center justify-between py-1 text-xs font-bold border transition-all duration-200 relative ${dayStyles}`}
                 >
                   <span>{day}</span>
-
                   <div className="flex gap-0.5 justify-center h-1.5 w-full items-center mb-0.5">
                     {overlappingUniversities.map((univ) => (
                       <span
