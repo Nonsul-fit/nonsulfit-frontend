@@ -6,7 +6,7 @@ import Card from "../../components/atoms/Card";
 interface ReportItem {
   id: number;
   title: string;
-  createdAt: string; // 승효님이 보내주는 진짜 날짜 데이터
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -29,7 +29,6 @@ const ResultList = () => {
     fetchList();
   }, []);
 
-  // ⏰ [진짜 서버 시간 매핑] 날짜 및 시간 칩 가공기
   const getFormattedDateTime = (report: ReportItem) => {
     if (!report.createdAt) {
       return {
@@ -38,14 +37,12 @@ const ResultList = () => {
       };
     }
 
-    // "2026-06-01 11:10:37" 문자열 쪼개기 (Safari 호환)
     const parts = report.createdAt.split(/[- :]/);
     const month = parseInt(parts[1], 10);
     const day = parseInt(parts[2], 10);
     const hour = parseInt(parts[3], 10);
     const minute = parseInt(parts[4], 10);
 
-    // 오전/오후 계산
     const ampm = hour >= 12 ? "오후" : "오전";
     const displayHour = hour % 12 === 0 ? 12 : hour % 12;
     const displayMinute = minute < 10 ? `0${minute}` : minute;
@@ -69,7 +66,7 @@ const ResultList = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-32 bg-white rounded-xl border border-dashed border-gray-200">
+        <div className="flex flex-col items-center justify-center py-32 bg-white rounded-xl border border-dashed shadow-sm  border-gray-200">
           <div className="w-8 h-8 border-4 border-gray-100 border-t-primary rounded-full animate-spin mb-4" />
           <p className="text-medium font-medium text-gray-500">
             분석 이력을 불러오는 중...
@@ -107,14 +104,14 @@ const ResultList = () => {
           })}
         </div>
       ) : (
-        <div className="text-center py-20 text-gray-400 bg-white rounded-[2rem] border border-dashed border-gray-200 shadow-sm flex flex-col items-center justify-center">
-          <span className="text-4xl mb-4">📭</span>
-          <p className="text-medium font-bold text-gray-700 mb-5">
+        <div className="text-center py-27 text-gray-400 bg-white rounded-xl border border-dashed border-gray-200 shadow-sm flex flex-col items-center justify-center">
+          <span className="text-4xl mb-4"></span>
+          <p className="text-medium font-extrabold text-gray-700 mb-5">
             아직 생성된 논술핏 분석 리포트 이력이 없습니다.
           </p>
           <button
             onClick={() => navigate("/home")}
-            className="px-6 py-3.5 bg-primary text-white font-extrabold text-sm rounded-2xl shadow-md hover:opacity-95 hover:scale-[1.02] transition-all duration-200"
+            className="px-6 py-3.5 bg-primary text-white font-extrabold text-medium rounded-xl shadow-md hover:opacity-90 transition-all duration-200"
           >
             첫 리포트 분석하러 가기
           </button>

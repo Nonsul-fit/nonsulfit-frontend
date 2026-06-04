@@ -395,7 +395,7 @@ const Step03 = () => {
       </div>
 
       {serverError && (
-        <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center text-sm font-semibold text-red-500 animate-pulse">
+        <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center text-sm font-semibold text-red-500">
           {serverError}
         </div>
       )}

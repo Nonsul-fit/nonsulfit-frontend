@@ -1,9 +1,11 @@
 import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
+  // 💳 모의 테스트 메뉴와 페이먼트 경로(/payment)를 추가했습니다!
   const menus = [
     { name: "성적 입력", path: "/home" },
     { name: "분석 리포트", path: "/result" },
+    { name: "모의 테스트", path: "/payment" },
   ];
 
   return (
@@ -16,7 +18,7 @@ const Sidebar = () => {
             className={({ isActive }) =>
               `flex-1 md:flex-none rounded-xl px-4 py-2.5 text-center md:text-left text-[14px] font-bold tracking-tight transition-all ${
                 isActive
-                  ? "bg-white text-primary "
+                  ? "bg-white text-primary shadow-sm"
                   : "text-gray-500 hover:bg-white/50"
               }`
             }
