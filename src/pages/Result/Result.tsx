@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// 💡 1. useParams를 react-router-dom에서 함께 불러옵니다!
+import { useNavigate, useParams } from "react-router-dom";
 import type { FilterType } from "../../components/molecules/result/ResultHeader";
 import ResultHeader from "../../components/molecules/result/ResultHeader";
 import UnivTabs from "../../components/molecules/result/UnivTabs";
@@ -7,14 +8,19 @@ import EvaluationReport from "../../components/organisms/result/EvaluationReport
 import UnivCompetencyComparison from "../../components/organisms/result/UnivCompetencyComparison";
 import UnivDetailSummary from "../../components/organisms/result/UnivDetailSummary";
 import { useNonsulResult } from "../../hooks/useNonsulResult";
+import Chatbtn from "../../components/organisms/ChatBtn";
 
 const Result = () => {
   const navigate = useNavigate();
 
+  // 💡 2. 주소창(URL)에 매달려 있는 리포트 ID(예: 20번)를 추출합니다.
+  const { id } = useParams<{ id: string }>();
+
   const [filter, setFilter] = useState<FilterType>("상향");
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
-  const { universityList, isLoading } = useNonsulResult(filter);
+  // 💡 3. 추출한 id를 커스텀 훅에 첫 번째 인자로 함께 던져줍니다!
+  const { universityList, isLoading } = useNonsulResult(id, filter);
 
   const handleFilterChange = (newFilter: FilterType) => {
     setFilter(newFilter);
@@ -24,7 +30,7 @@ const Result = () => {
   const currentUniversity = universityList[activeIdx] || universityList[0];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-16">
+    <div className="max-w-7xl mx-auto space-y-8 pb-16 relative">
       <ResultHeader
         currentFilter={filter}
         onFilterChange={handleFilterChange}
@@ -81,6 +87,9 @@ const Result = () => {
           </button>
         </div>
       )}
+
+      {/* 🚀 최외각 div가 끝나기 바로 직전, 맨 아래에 챗봇 버튼 배치 */}
+      <Chatbtn />
     </div>
   );
 };

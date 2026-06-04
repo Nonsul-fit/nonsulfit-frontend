@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-// 📦 최신 V2 패키지로 임포트 변경 완료
+
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { nanoid } from "nanoid";
 
-// 🔑 문서에서 새로 찾아낸 진짜 V2 결제위젯 전용 마스터 테스트 키로 업데이트!
 const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
 const customerKey = nanoid();
 

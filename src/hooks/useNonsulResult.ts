@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { getResultData } from "../types/nonsulService";
 import api from "../api/axios";
 import type { FilterType } from "../components/molecules/result/ResultHeader";
 
-export const useNonsulResult = (filter: FilterType) => {
-  const { id: urlId } = useParams<{ id: string }>(); // 주소창에서 ID 가로채기
+export const useNonsulResult = (id: string | undefined, filter: FilterType) => {
   const [universityList, setUniversityList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -13,7 +11,7 @@ export const useNonsulResult = (filter: FilterType) => {
     const fetchBackendData = async () => {
       setIsLoading(true);
       try {
-        let targetId = urlId;
+        let targetId = id;
 
         if (!targetId) {
           const listResponse = await api.get("/nonsulfit/result");
@@ -25,7 +23,6 @@ export const useNonsulResult = (filter: FilterType) => {
             return;
           }
 
-          // 존재하는 리포트 ID들 중 가장 숫자가 큰 것(즉, 방금 생성된 최신 리포트)을 골라냅니다.
           const maxId = Math.max(...reports.map((r: any) => Number(r.id)));
           targetId = String(maxId);
         }
@@ -34,12 +31,22 @@ export const useNonsulResult = (filter: FilterType) => {
         if (filter === "적정") backendCategory = "MODERATE";
         if (filter === "하향") backendCategory = "SAFE";
 
-        // 💡 알아낸 최신 targetId를 조립해서 상세 데이터를 완벽하게 호출합니다!
+        // 백엔드 상세 데이터 호출
         const response = (await getResultData(
           targetId,
           backendCategory,
           "6",
         )) as any;
+
+        // 🔍 [디버깅 로그 추가] 백엔드가 진짜 데이터를 보내 주는지 감시하는 로그
+        console.log(
+          "📍 [useNonsulResult] 요청 정보 -> ID:",
+          targetId,
+          " | 카테고리:",
+          backendCategory,
+        );
+        console.log("🔥 승효님 백엔드가 준 진짜 데이터:", response);
+
         const backendList = response.result || [];
 
         if (backendList.length === 0) {
@@ -133,12 +140,12 @@ export const useNonsulResult = (filter: FilterType) => {
       } catch (e) {
         console.error("결과 리포트 연동 실패:", e);
       } finally {
-        setIsLoading(false); // 💥 어떤 상황이 오든 무조건 로딩 바를 꺼줍니다!
+        setIsLoading(false);
       }
     };
 
     fetchBackendData();
-  }, [filter, urlId]);
+  }, [id, filter]);
 
   return { universityList, isLoading };
 };
