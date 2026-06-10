@@ -17,7 +17,6 @@ const Step03 = () => {
   const { studentInfo, essayInfo, academicInfo, setAcademicInfo } =
     useFormContext();
 
-  // 💡 1단계: 백엔드 에러 메시지를 담아둘 바구니(State) 추가
   const [serverError, setServerError] = useState<string>("");
 
   const handleGpaUpdate = (field: string, val: string) => {
@@ -35,24 +34,38 @@ const Step03 = () => {
   };
 
   const handleFinalSubmit = () => {
-    // 💡 제출 시작할 때 기존 에러 메시지 초기화
     setServerError("");
 
+    // 1. 내신 성적 필수 검증 기본 세팅
     const requiredFields: Record<string, any> = {
       gpaCore: academicInfo.gpaCore,
       gpaAll: academicInfo.gpaAll,
     };
 
-    academicInfo.mockExams.forEach((exam: MockExamSlot, idx: number) => {
+    // 🔑 2. 연도 같은 기본값에 속지 않고, 유저가 '과목 등급'을 한 칸이라도 진짜 입력한 회차만 추려내기
+    const filledExams = academicInfo.mockExams.filter((exam: MockExamSlot) => {
+      return !!(
+        exam.korean?.grade ||
+        exam.math?.grade ||
+        exam.english ||
+        exam.inquiry1 ||
+        exam.inquiry2
+      );
+    });
+
+    // 3. 최소 1개 회차도 입력하지 않은 경우 사전 차단
+    if (filledExams.length === 0) {
+      setServerError(
+        "⚠️ 정밀한 합격 진단을 위해 최근 3개 회차 중 최소 1개 회차 이상의 성적을 입력해 주세요.",
+      );
+      return false;
+    }
+
+    // 4. 입력이 시작된 회차는 모든 과목 등급이 누락 없이 채워졌는지 검증 타깃에 추가
+    filledExams.forEach((exam: MockExamSlot, idx: number) => {
       requiredFields[`exam_${idx}_year`] = exam.year;
-      requiredFields[`exam_${idx}_korean_grade`] = exam.korean.grade;
-      requiredFields[`exam_${idx}_korean_percentile`] = exam.korean.percentile;
-      requiredFields[`exam_${idx}_korean_standardScore`] =
-        exam.korean.standardScore;
-      requiredFields[`exam_${idx}_math_grade`] = exam.math.grade;
-      requiredFields[`exam_${idx}_math_percentile`] = exam.math.percentile;
-      requiredFields[`exam_${idx}_math_standardScore`] =
-        exam.math.standardScore;
+      requiredFields[`exam_${idx}_korean_grade`] = exam.korean?.grade;
+      requiredFields[`exam_${idx}_math_grade`] = exam.math?.grade;
       requiredFields[`exam_${idx}_english`] = exam.english;
       requiredFields[`exam_${idx}_inquiry1`] = exam.inquiry1;
       requiredFields[`exam_${idx}_inquiry2`] = exam.inquiry2;
@@ -60,7 +73,7 @@ const Step03 = () => {
 
     const isValid = validateRequired(
       requiredFields,
-      "정확한 합격 진단을 위해 내신 등급과 3개 회차의 모든 성적 항목을 입력해 주세요.",
+      "입력하신 회차의 모든 과목 등급과 응시 연도를 빠짐없이 입력해 주세요.",
     );
 
     if (!isValid) return false;
@@ -73,6 +86,7 @@ const Step03 = () => {
       return 11;
     };
 
+    // 5. 전송 페이로드 조립 (입력된 회차 데이터만 정제해서 전송)
     const formattedPayload = {
       student: {
         grade: 3,
@@ -99,15 +113,16 @@ const Step03 = () => {
         allGrade: Number(academicInfo.gpaAll) || 0,
       },
 
-      testGrades: academicInfo.mockExams.map((exam: MockExamSlot) => ({
+      // 🔑 완전히 비어있는 회차는 제외하고 유효한 회차 데이터만 백엔드로 전송
+      testGrades: filledExams.map((exam: MockExamSlot) => ({
         year: Number(exam.year) || 0,
         month: convertExamMonth(exam.examType),
-        koreanGrade: Number(exam.korean.grade) || 0,
-        koreanPercent: Number(exam.korean.percentile) || 0,
-        koreanStandardScore: Number(exam.korean.standardScore) || 0,
-        mathGrade: Number(exam.math.grade) || 0,
-        mathPercent: Number(exam.math.percentile) || 0,
-        mathStandardScore: Number(exam.math.standardScore) || 0,
+        koreanGrade: Number(exam.korean?.grade) || 0,
+        koreanPercent: 0, // 백엔드 스펙 유지용 0 고정
+        koreanStandardScore: 0,
+        mathGrade: Number(exam.math?.grade) || 0,
+        mathPercent: 0,
+        mathStandardScore: 0,
         englishGrade: Number(exam.english) || 0,
         inquiry1Grade: Number(exam.inquiry1) || 0,
         inquiry2Grade: Number(exam.inquiry2) || 0,
@@ -121,21 +136,12 @@ const Step03 = () => {
       .catch((error: any) => {
         console.error("백엔드 전송 중 에러 발생:", error);
 
-        // 💡 2단계: 백엔드 400 입력 양식 에러 가로채기 파트
         if (error.response?.status === 400) {
           const backendMessage = error.response.data?.message || "";
-
-          if (backendMessage.includes("greater than 100")) {
-            setServerError(
-              "⚠️ 백분위 점수는 100을 초과하여 입력할 수 없습니다. 입력하신 회차별 백분위를 다시 확인해 주세요.",
-            );
-          } else {
-            setServerError(
-              `⚠️ 입력 정보 형식이 올바르지 않습니다. (${backendMessage})`,
-            );
-          }
+          setServerError(
+            `⚠️ 입력 정보 형식이 올바르지 않습니다. (${backendMessage})`,
+          );
         } else {
-          // 500 에러 등 기타 서버 오류 예외 처리
           setServerError(
             "⚠️ 성적 제출 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
           );
@@ -157,6 +163,7 @@ const Step03 = () => {
       />
 
       <div className="space-y-6">
+        {/* 1. 학생부 교과 성적 카드 */}
         <FormCard
           title="학생부 교과 성적"
           icon="🏫"
@@ -181,8 +188,13 @@ const Step03 = () => {
         </FormCard>
 
         {/* 2. 수능 및 모의고사 성적 카드 */}
-        <FormCard title="수능 / 모의고사 성적 (최근 3개 회차)" icon="⏱️">
+        <FormCard
+          title="수능 / 모의고사 성적"
+          icon="⏱️"
+          badge="❗️최소 1개 회차 필수 입력"
+        >
           <div className="space-y-6 p-2">
+            {/* 탭 네비게이션 */}
             <div className="flex rounded-xl bg-gray-100 p-1">
               {[0, 1, 2].map((idx) => (
                 <button
@@ -228,7 +240,6 @@ const Step03 = () => {
                 </div>
               </div>
 
-              {/* 응시 년도 입력 */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-gray-700">
                   응시 연도
@@ -249,144 +260,100 @@ const Step03 = () => {
               </div>
             </div>
 
-            {/* 과목별 세부 점수 */}
-            <div className="space-y-4">
-              {/* 국어 영역*/}
-              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4 rounded-xl border border-gray-200 p-4">
-                <span className="text-sm font-bold text-gray-800 sm:pr-2">
-                  국어 영역
+            {/* 과목별 등급 입력 단일 2열 그리드 레이아웃 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* 국어 영역 */}
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
+                <span className="text-sm font-bold text-gray-800">
+                  국어 영역 등급
                 </span>
-                <div className="sm:col-span-3 grid grid-cols-3 gap-3">
+                <div className="w-24">
                   <Input
                     placeholder="등급"
                     type="number"
-                    value={currentExam.korean.grade}
+                    value={currentExam.korean?.grade || ""}
                     onChange={(e) =>
                       handleMockUpdate((draft) => {
                         draft.korean.grade = e.target.value;
                       })
                     }
                   />
-                  {/* 💡 국어 백분위 제한 추가 (min, max) */}
-                  <Input
-                    placeholder="백분위"
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={currentExam.korean.percentile}
-                    onChange={(e) =>
-                      handleMockUpdate((draft) => {
-                        draft.korean.percentile = e.target.value;
-                      })
-                    }
-                  />
-                  <Input
-                    placeholder="표준점수"
-                    type="number"
-                    value={currentExam.korean.standardScore}
-                    onChange={(e) =>
-                      handleMockUpdate((draft) => {
-                        draft.korean.standardScore = e.target.value;
-                      })
-                    }
-                  />
                 </div>
               </div>
 
-              {/* 수학 영역*/}
-              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4 rounded-xl border border-gray-200 p-4">
-                <span className="text-sm font-bold text-gray-800 sm:pr-2">
-                  수학 영역
+              {/* 수학 영역 */}
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
+                <span className="text-sm font-bold text-gray-800">
+                  수학 영역 등급
                 </span>
-                <div className="sm:col-span-3 grid grid-cols-3 gap-3">
+                <div className="w-24">
                   <Input
                     placeholder="등급"
                     type="number"
-                    value={currentExam.math.grade}
+                    value={currentExam.math?.grade || ""}
                     onChange={(e) =>
                       handleMockUpdate((draft) => {
                         draft.math.grade = e.target.value;
                       })
                     }
                   />
-                  {/* 💡 수학 백분위 제한 추가 (min, max) */}
+                </div>
+              </div>
+
+              {/* 영어 영역 */}
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
+                <span className="text-sm font-bold text-gray-800">
+                  영어 영역 등급
+                </span>
+                <div className="w-24">
                   <Input
-                    placeholder="백분위"
+                    placeholder="등급"
                     type="number"
-                    min={0}
-                    max={100}
-                    value={currentExam.math.percentile}
+                    value={currentExam.english || ""}
                     onChange={(e) =>
                       handleMockUpdate((draft) => {
-                        draft.math.percentile = e.target.value;
-                      })
-                    }
-                  />
-                  <Input
-                    placeholder="표준점수"
-                    type="number"
-                    value={currentExam.math.standardScore}
-                    onChange={(e) =>
-                      handleMockUpdate((draft) => {
-                        draft.math.standardScore = e.target.value;
+                        draft.english = e.target.value;
                       })
                     }
                   />
                 </div>
               </div>
 
-              {/* 영어 및 탐구 영역 */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4">
-                  <span className="text-xs font-bold text-gray-700">
-                    영어 등급
-                  </span>
-                  <div className="w-20">
-                    <Input
-                      placeholder="등급"
-                      type="number"
-                      value={currentExam.english}
-                      onChange={(e) =>
-                        handleMockUpdate((draft) => {
-                          draft.english = e.target.value;
-                        })
-                      }
-                    />
-                  </div>
+              {/* 탐구 1 */}
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
+                <span className="text-sm font-bold text-gray-800">
+                  탐구 1 등급
+                </span>
+                <div className="w-24">
+                  <Input
+                    placeholder="등급"
+                    type="number"
+                    value={currentExam.inquiry1 || ""}
+                    onChange={(e) =>
+                      handleMockUpdate((draft) => {
+                        draft.inquiry1 = e.target.value;
+                      })
+                    }
+                  />
                 </div>
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4">
-                  <span className="text-xs font-bold text-gray-700">
-                    탐구 1 등급
-                  </span>
-                  <div className="w-20">
-                    <Input
-                      placeholder="등급"
-                      type="number"
-                      value={currentExam.inquiry1}
-                      onChange={(e) =>
-                        handleMockUpdate((draft) => {
-                          draft.inquiry1 = e.target.value;
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4">
-                  <span className="text-xs font-bold text-gray-700">
-                    탐구 2 등급
-                  </span>
-                  <div className="w-20">
-                    <Input
-                      placeholder="등급"
-                      type="number"
-                      value={currentExam.inquiry2}
-                      onChange={(e) =>
-                        handleMockUpdate((draft) => {
-                          draft.inquiry2 = e.target.value;
-                        })
-                      }
-                    />
-                  </div>
+              </div>
+
+              {/* 탐구 2 */}
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white sm:col-span-2 md:col-span-1">
+                <span className="text-sm font-bold text-gray-800">
+                  탐구 2 등급
+                </span>
+                <div className="w-24">
+                  <Input
+                    placeholder="등급"
+                    type="number"
+                    value={currentExam.inquiry2 || ""}
+                    onChange={(e) =>
+                      handleMockUpdate((draft) => {
+                        draft.inquiry2 = e.target.value;
+                      })
+                    }
+                  />
                 </div>
               </div>
             </div>
