@@ -36,13 +36,11 @@ const Step03 = () => {
   const handleFinalSubmit = () => {
     setServerError("");
 
-    // 1. 내신 성적 필수 검증 기본 세팅
     const requiredFields: Record<string, any> = {
       gpaCore: academicInfo.gpaCore,
       gpaAll: academicInfo.gpaAll,
     };
 
-    // 🔑 2. 연도 같은 기본값에 속지 않고, 유저가 '과목 등급'을 한 칸이라도 진짜 입력한 회차만 추려내기
     const filledExams = academicInfo.mockExams.filter((exam: MockExamSlot) => {
       return !!(
         exam.korean?.grade ||
@@ -53,7 +51,6 @@ const Step03 = () => {
       );
     });
 
-    // 3. 최소 1개 회차도 입력하지 않은 경우 사전 차단
     if (filledExams.length === 0) {
       setServerError(
         "⚠️ 정밀한 합격 진단을 위해 최근 3개 회차 중 최소 1개 회차 이상의 성적을 입력해 주세요.",
@@ -61,7 +58,6 @@ const Step03 = () => {
       return false;
     }
 
-    // 4. 입력이 시작된 회차는 모든 과목 등급이 누락 없이 채워졌는지 검증 타깃에 추가
     filledExams.forEach((exam: MockExamSlot, idx: number) => {
       requiredFields[`exam_${idx}_year`] = exam.year;
       requiredFields[`exam_${idx}_korean_grade`] = exam.korean?.grade;
@@ -86,14 +82,14 @@ const Step03 = () => {
       return 11;
     };
 
-    // 5. 전송 페이로드 조립 (입력된 회차 데이터만 정제해서 전송)
+    // 🔑 승효님 성공 데이터 규격과 100% 매칭되는 가방 조립
     const formattedPayload = {
       student: {
-        grade: 3,
+        grade: "3", // 💡 승효님 요청에 맞춰 문자열 "3"으로 수정
         repeatYear: studentInfo.status === "재학생" ? 0 : 1,
         academic: studentInfo.track,
-        desiredDepartment: studentInfo.major,
-        desiredArea: studentInfo.targetRegion,
+        desiredDepartment: studentInfo.major || "",
+        desiredArea: studentInfo.targetRegion || "전국",
       },
 
       essayCompetency: {
@@ -113,16 +109,12 @@ const Step03 = () => {
         allGrade: Number(academicInfo.gpaAll) || 0,
       },
 
-      // 🔑 완전히 비어있는 회차는 제외하고 유효한 회차 데이터만 백엔드로 전송
+      // 💡 안 쓰는 백분위, 표준점수 필드는 가방에서 완전히 삭제하여 전송
       testGrades: filledExams.map((exam: MockExamSlot) => ({
-        year: Number(exam.year) || 0,
+        year: Number(exam.year) || 2026,
         month: convertExamMonth(exam.examType),
         koreanGrade: Number(exam.korean?.grade) || 0,
-        koreanPercent: 0, // 백엔드 스펙 유지용 0 고정
-        koreanStandardScore: 0,
         mathGrade: Number(exam.math?.grade) || 0,
-        mathPercent: 0,
-        mathStandardScore: 0,
         englishGrade: Number(exam.english) || 0,
         inquiry1Grade: Number(exam.inquiry1) || 0,
         inquiry2Grade: Number(exam.inquiry2) || 0,
@@ -135,7 +127,6 @@ const Step03 = () => {
       })
       .catch((error: any) => {
         console.error("백엔드 전송 중 에러 발생:", error);
-
         if (error.response?.status === 400) {
           const backendMessage = error.response.data?.message || "";
           setServerError(
@@ -163,7 +154,6 @@ const Step03 = () => {
       />
 
       <div className="space-y-6">
-        {/* 1. 학생부 교과 성적 카드 */}
         <FormCard
           title="학생부 교과 성적"
           icon="🏫"
@@ -187,14 +177,12 @@ const Step03 = () => {
           </div>
         </FormCard>
 
-        {/* 2. 수능 및 모의고사 성적 카드 */}
         <FormCard
           title="수능 / 모의고사 성적"
           icon="⏱️"
           badge="❗️최소 1개 회차 필수 입력"
         >
           <div className="space-y-6 p-2">
-            {/* 탭 네비게이션 */}
             <div className="flex rounded-xl bg-gray-100 p-1">
               {[0, 1, 2].map((idx) => (
                 <button
@@ -212,7 +200,6 @@ const Step03 = () => {
               ))}
             </div>
 
-            {/* 시험 종류 및 응시년도 */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-gray-50/50 p-4 rounded-xl border border-gray-100">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-bold text-gray-700">
@@ -260,9 +247,7 @@ const Step03 = () => {
               </div>
             </div>
 
-            {/* 과목별 등급 입력 단일 2열 그리드 레이아웃 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* 국어 영역 */}
               <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
                 <span className="text-sm font-bold text-gray-800">
                   국어 영역 등급
@@ -281,7 +266,6 @@ const Step03 = () => {
                 </div>
               </div>
 
-              {/* 수학 영역 */}
               <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
                 <span className="text-sm font-bold text-gray-800">
                   수학 영역 등급
@@ -300,7 +284,6 @@ const Step03 = () => {
                 </div>
               </div>
 
-              {/* 영어 영역 */}
               <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
                 <span className="text-sm font-bold text-gray-800">
                   영어 영역 등급
@@ -319,7 +302,6 @@ const Step03 = () => {
                 </div>
               </div>
 
-              {/* 탐구 1 */}
               <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white">
                 <span className="text-sm font-bold text-gray-800">
                   탐구 1 등급
@@ -338,7 +320,6 @@ const Step03 = () => {
                 </div>
               </div>
 
-              {/* 탐구 2 */}
               <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 bg-white sm:col-span-2 md:col-span-1">
                 <span className="text-sm font-bold text-gray-800">
                   탐구 2 등급
