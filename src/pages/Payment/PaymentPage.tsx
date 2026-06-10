@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { nanoid } from "nanoid";
 
-const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+// 🔑 클라이언트 상점의 진짜 테스트 클라이언트 키
+const clientKey = "test_gck_6bJXmgo28e7L4YD7kxJwVLAnGKWx";
 const customerKey = nanoid();
 
 const PaymentPage = () => {
@@ -73,7 +74,8 @@ const PaymentPage = () => {
         </p>
       </div>
 
-      <div className="w-full border border-dashed border-gray-200 bg-white rounded-xl p-6 md:p-10 shadow-sm space-y-8">
+      {/* 💡 핵심 수정 구역: 맥북에서 패딩을 더 늘리고 싶다면 뒤쪽의 md:px-12, md:pt-14 부분을 수정하셔야 반영됩니다! */}
+      <div className="w-full border border-dashed border-gray-200 bg-white rounded-xl px-6 pt-10 pb-4 md:px-12 md:pt-14 md:pb-6 shadow-sm">
         {/* 1. 주문 상품 정보 영역 */}
         <div className="space-y-3">
           <h3 className="text-xs font-bold text-gray-400 uppercase">
@@ -90,7 +92,7 @@ const PaymentPage = () => {
         </div>
 
         {/* 2. 이메일 입력 섹션 */}
-        <div className="space-y-3">
+        <div className="space-y-3 mt-6 md:mt-8">
           <label className="text-sm font-extrabold text-gray-800 block">
             📩 문제를 받아보실 이메일 주소{" "}
             <span className="text-red-500">*</span>
@@ -109,10 +111,10 @@ const PaymentPage = () => {
         </div>
 
         {/* 3. 토스 결제 수단 영역 */}
-        <div id="payment-element" className="w-full" />
+        <div id="payment-element" className="w-full mt-4" />
 
         {/* 4. 하단 결제 인터랙션 영역 */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8 pt-4 border-t border-gray-50">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8 pt-4 border-t border-gray-100 mt-0">
           {/* 토스 약관 동의 영역 */}
           <div id="agreement-element" className="w-full md:flex-1" />
 

@@ -6,10 +6,8 @@ const SuccessPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // 승효님 서버의 확인 응답이 올 때까지 로딩 바를 띄울 상태
   const [isProcessing, setIsProcessing] = useState(true);
 
-  // 💡 리액트 스트릭트 모드로 인해 useEffect가 동시에 2번 연속 실행되어 에러나는 현상 방지벽
   const hasRequested = useRef(false);
 
   const email = searchParams.get("email");
@@ -18,14 +16,11 @@ const SuccessPage = () => {
   const paymentKey = searchParams.get("paymentKey");
 
   useEffect(() => {
-    // 이미 요청을 보냈거나 필수 데이터가 없는 경우 실행 안 하고 튕겨내기
     if (hasRequested.current || !paymentKey || !orderId || !amount) return;
 
-    // 💡 도장 쾅! 이제 이 useEffect 안의 API 요청은 단 한 번만 실행됩니다.
     hasRequested.current = true;
     setIsProcessing(true);
 
-    // 🚀 승효님 진짜 API 엔드포인트 호출
     api
       .post("/payment/confirm", {
         paymentKey,
@@ -40,9 +35,8 @@ const SuccessPage = () => {
           res.data?.isSuccess === true
         ) {
           console.log("토스 승인 및 DB 저장, 메일 발송 트리거 완료!");
-          setIsProcessing(false); // 로딩 끄고 수민님의 이쁜 완료 UI를 보여줍니다.
+          setIsProcessing(false);
         } else {
-          // 서버에서 처리는 됐으나 실패 응답을 준 경우
           alert("결제 승인에 실패했습니다. 다시 시도해 주세요.");
           navigate("/payment");
         }
@@ -77,7 +71,7 @@ const SuccessPage = () => {
           🎉 결제가 완료되었습니다!
         </h2>
         <p className="text-medium font-medium text-gray-500 mt-2">
-          모의 테스트 신청이 정상적으로 접수되었습니다.
+          모의테스트 결제가 잘 접수되었습니다
         </p>
       </div>
 

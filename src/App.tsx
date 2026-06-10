@@ -11,9 +11,9 @@ import Step02 from "./pages/Step/Step02";
 import Step03 from "./pages/Step/Step03";
 import ResultList from "./pages/Result/ResultList";
 import PaymentPage from "./pages/Payment/PaymentPage";
-// ⚙️ 1. 성공 / 실패 페이지 임포트 추가!
 import SuccessPage from "./pages/Payment/SuccessPage";
 import FailPage from "./pages/Payment/FailPage";
+import LandingPage from "./pages/LandingPage";
 
 function App() {
   return (
@@ -21,7 +21,10 @@ function App() {
       <BrowserRouter>
         <FormProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* 🎯 2. 시작 화면(/)을 로그인 페이지 강제 이동 대신 '랜딩 페이지'로 전면 교체! */}
+            <Route path="/" element={<LandingPage />} />
+
+            {/* 로그인과 회원가입은 필요할 때 따로 이동하도록 독립시킵니다 */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
 
@@ -36,7 +39,7 @@ function App() {
               {/* 💳 결제 메인 페이지 */}
               <Route path="/payment" element={<PaymentPage />} />
 
-              {/* ⚙️ 2. 토스가 결제 완료/실패 후 리다이렉트할 라우트 추가! */}
+              {/* 토스가 결제 완료/실패 후 리다이렉트할 라우트 */}
               <Route path="/payment/success" element={<SuccessPage />} />
               <Route path="/payment/fail" element={<FailPage />} />
 

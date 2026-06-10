@@ -2,7 +2,8 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://nonsulfit-backend-production.up.railway.app",
-  timeout: 5000,
+
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -14,7 +15,9 @@ api.interceptors.request.use(
 
     const isNoTokenRequired =
       config.url?.includes("/auth/login") ||
+      config.url?.includes("/login") ||
       config.url?.includes("/auth/register") ||
+      config.url?.includes("/signup") ||
       config.url?.includes("/auth/check-email");
 
     if (token && !isNoTokenRequired) {
@@ -48,6 +51,8 @@ api.interceptors.response.use(
           {},
           {
             headers: { Authorization: `Bearer ${refreshToken}` },
+            // 리프레시 토큰 재발급 요청도 안전하게 15초 동안 기다려줍니다.
+            timeout: 15000,
           },
         );
 

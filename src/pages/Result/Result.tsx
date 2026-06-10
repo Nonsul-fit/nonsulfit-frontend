@@ -1,5 +1,4 @@
 import { useState } from "react";
-// 💡 1. useParams를 react-router-dom에서 함께 불러옵니다!
 import { useNavigate, useParams } from "react-router-dom";
 import type { FilterType } from "../../components/molecules/result/ResultHeader";
 import ResultHeader from "../../components/molecules/result/ResultHeader";
@@ -8,18 +7,17 @@ import EvaluationReport from "../../components/organisms/result/EvaluationReport
 import UnivCompetencyComparison from "../../components/organisms/result/UnivCompetencyComparison";
 import UnivDetailSummary from "../../components/organisms/result/UnivDetailSummary";
 import { useNonsulResult } from "../../hooks/useNonsulResult";
-import Chatbtn from "../../components/organisms/ChatBtn";
+import ChatBtn from "../../components/organisms/ChatBtn";
 
 const Result = () => {
   const navigate = useNavigate();
 
-  // 💡 2. 주소창(URL)에 매달려 있는 리포트 ID(예: 20번)를 추출합니다.
+  // 💡 주소창에서 추출한 id (string | undefined 타입)
   const { id } = useParams<{ id: string }>();
 
   const [filter, setFilter] = useState<FilterType>("상향");
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
-  // 💡 3. 추출한 id를 커스텀 훅에 첫 번째 인자로 함께 던져줍니다!
   const { universityList, isLoading } = useNonsulResult(id, filter);
 
   const handleFilterChange = (newFilter: FilterType) => {
@@ -88,8 +86,8 @@ const Result = () => {
         </div>
       )}
 
-      {/* 🚀 최외각 div가 끝나기 바로 직전, 맨 아래에 챗봇 버튼 배치 */}
-      <Chatbtn />
+      {/* ✨ 이제 컴포넌트 내부에서 undefined를 안전하게 소화하므로 에러가 완벽히 사라집니다! */}
+      <ChatBtn savedAnalysisReportId={id} />
     </div>
   );
 };
