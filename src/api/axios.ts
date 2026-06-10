@@ -3,7 +3,8 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "https://nonsulfit-backend-production.up.railway.app",
 
-  timeout: 15000,
+  // 🔑 1. 기본 API 요청 타임아웃을 15초에서 1분(60000ms)으로 연장
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -51,8 +52,8 @@ api.interceptors.response.use(
           {},
           {
             headers: { Authorization: `Bearer ${refreshToken}` },
-            // 리프레시 토큰 재발급 요청도 안전하게 15초 동안 기다려줍니다.
-            timeout: 15000,
+            // 🔑 2. 리프레시 토큰 재발급 요청 타임아웃도 똑같이 1분(60000ms)으로 연장
+            timeout: 60000,
           },
         );
 
