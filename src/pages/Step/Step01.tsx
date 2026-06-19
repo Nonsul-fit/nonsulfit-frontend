@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Input from "../../components/atoms/Input";
 import SelectionCard from "../../components/molecules/step/SelectionCard";
 import StepHeader from "../../components/molecules/step/StepHeader";
