@@ -8,17 +8,29 @@ import UnivCompetencyComparison from "../../components/organisms/result/UnivComp
 import UnivDetailSummary from "../../components/organisms/result/UnivDetailSummary";
 import { useNonsulResult } from "../../hooks/useNonsulResult";
 import ChatBtn from "../../components/organisms/ChatBtn";
+import { useFormContext } from "../../context/FormContext"; // 🔑 1. 컨텍스트 임포트 추가
 
 const Result = () => {
   const navigate = useNavigate();
-
-  // 💡 주소창에서 추출한 id (string | undefined 타입)
   const { id } = useParams<{ id: string }>();
 
   const [filter, setFilter] = useState<FilterType>("상향");
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
-  const { universityList, isLoading } = useNonsulResult(id, filter);
+  // 🔑 2. 전역 상태에서 studentInfo(유저가 선택한 카드 개수 포함) 가져오기
+  const { studentInfo } = useFormContext();
+
+  // 🔑 3. "6개" 문자열에서 "개"를 빼고 숫자로 변환 (기본값 4)
+  const selectedLimit = studentInfo?.essayCount
+    ? Number(studentInfo.essayCount.replace("개", ""))
+    : 4;
+
+  // 🔑 4. 훅 호출할 때 세 번째 인자로 selectedLimit 전달!
+  const { universityList, isLoading } = useNonsulResult(
+    id,
+    filter,
+    selectedLimit,
+  );
 
   const handleFilterChange = (newFilter: FilterType) => {
     setFilter(newFilter);
@@ -86,7 +98,6 @@ const Result = () => {
         </div>
       )}
 
-      {/* ✨ 이제 컴포넌트 내부에서 undefined를 안전하게 소화하므로 에러가 완벽히 사라집니다! */}
       <ChatBtn savedAnalysisReportId={id} />
     </div>
   );

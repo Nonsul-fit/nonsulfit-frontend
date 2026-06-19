@@ -21,6 +21,7 @@ export const FormProvider = ({ children }: { children: React.ReactNode }) => {
     track: "",
     major: "",
     targetRegion: "",
+    essayCount: "6개",
   });
 
   const [essayInfo, setEssayInfo] = useState({

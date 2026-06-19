@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Input from "../../components/atoms/Input";
 import SelectionCard from "../../components/molecules/step/SelectionCard";
 import StepHeader from "../../components/molecules/step/StepHeader";
@@ -8,7 +10,6 @@ import { useFormValidation } from "../../hooks/useFormValidation";
 
 const Step01 = () => {
   const { validateRequired } = useFormValidation();
-
   const { studentInfo, setStudentInfo } = useFormContext();
 
   const handleUpdate = (field: string, val: string) => {
@@ -20,6 +21,7 @@ const Step01 = () => {
       status: studentInfo.status,
       track: studentInfo.track,
       targetRegion: studentInfo.targetRegion,
+      essayCount: studentInfo.essayCount,
     };
 
     return validateRequired(
@@ -27,6 +29,7 @@ const Step01 = () => {
       "딱 맞는 입시 전략을 위해 모든 기본 정보를 입력해주세요.",
     );
   };
+
   return (
     <div className="mx-auto max-w-4xl">
       <StepHeader
@@ -69,12 +72,16 @@ const Step01 = () => {
           value={studentInfo.targetRegion}
           onChange={(val) => handleUpdate("targetRegion", val)}
         />
+        <SelectionCard
+          title="지원 논술 개수"
+          icon="🃏"
+          options={["1개", "2개", "3개", "4개", "5개", "6개"]}
+          value={studentInfo.essayCount}
+          onChange={(val) => handleUpdate("essayCount", val)}
+        />
       </div>
 
-      <StepNavigation
-        nextPath="/step02"
-        onNext={handleNextStep}
-      ></StepNavigation>
+      <StepNavigation nextPath="/step02" onNext={handleNextStep} />
     </div>
   );
 };
