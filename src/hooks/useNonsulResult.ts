@@ -3,11 +3,10 @@ import { getResultData } from "../types/nonsulService";
 import api from "../api/axios";
 import type { FilterType } from "../components/molecules/result/ResultHeader";
 
-// 🔑 1. 세 번째 인자로 limit(기본값 4)을 받을 수 있도록 매개변수 확장!
 export const useNonsulResult = (
   id: string | undefined,
   filter: FilterType,
-  limit: number = 4,
+  limit: number = 4, // 💡 Result.tsx 에러 방지를 위해 매개변수는 유지합니다.
 ) => {
   const [universityList, setUniversityList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,11 +35,11 @@ export const useNonsulResult = (
         if (filter === "적정") backendCategory = "MODERATE";
         if (filter === "하향") backendCategory = "SAFE";
 
-        // 🔑 2. 고정되어 있던 "6"을 지우고 유저가 선택한 limit 개수를 숫자로 전달!
+        // 🔑 백엔드 요청 반영: 세 번째 인자(limit)를 전송 가방에서 완전히 제거!
+        // 이제 백엔드가 DB에 저장된 유저의 essayCount를 보고 알아서 개수를 맞춰 줍니다.
         const response = (await getResultData(
           targetId,
           backendCategory,
-          String(limit),
         )) as any;
 
         console.log(
@@ -51,8 +50,8 @@ export const useNonsulResult = (
         );
         console.log("🔥 승효님 백엔드가 준 진짜 데이터:", response);
 
-        // 🔑 3. 혹시 모를 오버플로우 방지 및 확실한 개수 제어를 위해 .slice(0, limit) 처리
-        const backendList = (response.result || []).slice(0, limit);
+        // 🔑 백엔드 요청 반영: 프론트에서 강제로 개수를 자르던 .slice() 로직 삭제!
+        const backendList = response.result || [];
 
         if (backendList.length === 0) {
           setUniversityList([]);
@@ -150,7 +149,7 @@ export const useNonsulResult = (
     };
 
     fetchBackendData();
-  }, [id, filter, limit]); // 🔑 4. 의존성 배열에 limit을 추가하여 개수 선택 시 실시간 재호출 보장!
+  }, [id, filter, limit]);
 
   return { universityList, isLoading };
 };

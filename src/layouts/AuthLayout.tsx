@@ -8,7 +8,7 @@ interface AuthLayoutProps {
 const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4 font-sans">
-      <div className="w-full max-w-[400px] rounded-3xl bg-white p-10 shadow-2xl shadow-blue-100/40">
+      <div className="w-full max-w-[400px] border border-gray-100 rounded-3xl bg-white p-10 shadow-2xl shadow-blue-100/40">
         <div className="mb-8 text-center">
           <img
             src={brandLogo}

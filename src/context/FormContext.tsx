@@ -16,12 +16,14 @@ function createEmptyExamSlot(): MockExamSlot {
 }
 
 export const FormProvider = ({ children }: { children: React.ReactNode }) => {
+  // 🔑 studentInfo 상태창에 성별을 추가하고, 둘 다 빈 값("")으로 초기화합니다!
   const [studentInfo, setStudentInfo] = useState({
     status: "",
     track: "",
     major: "",
     targetRegion: "",
-    essayCount: "6개",
+    essayCount: "", // 👈 기본 선택 안 되게 "6개"에서 빈 값으로 변경!
+    gender: "", // 👈 성별 방 새로 추가 완료!
   });
 
   const [essayInfo, setEssayInfo] = useState({

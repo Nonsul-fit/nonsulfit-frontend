@@ -82,14 +82,22 @@ const Step03 = () => {
       return 11;
     };
 
-    // 🔑 승효님 성공 데이터 규격과 100% 매칭되는 가방 조립
+    // 🔑 백엔드 성공 데이터 규격 조립
     const formattedPayload = {
       student: {
-        grade: "3", // 💡 승효님 요청에 맞춰 문자열 "3"으로 수정
+        grade: "3",
         repeatYear: studentInfo.status === "재학생" ? 0 : 1,
         academic: studentInfo.track,
         desiredDepartment: studentInfo.major || "",
         desiredArea: studentInfo.targetRegion || "전국",
+
+        // 🔑 [신규 추가] 백엔드 요청 반영: 선택한 논술 개수 숫자만 추출해서 전달 ("6개" -> "6")
+        essayCount: studentInfo.essayCount
+          ? studentInfo.essayCount.replace(/[^0-9]/g, "")
+          : "6",
+
+        // 🔒 임시 주석 처리: 백엔드/알고리즘 추가 전까지 에러 방지를 위해 전송 제외
+        // gender: studentInfo.gender === "남자" ? "MALE" : "FEMALE",
       },
 
       essayCompetency: {
@@ -109,7 +117,6 @@ const Step03 = () => {
         allGrade: Number(academicInfo.gpaAll) || 0,
       },
 
-      // 💡 안 쓰는 백분위, 표준점수 필드는 가방에서 완전히 삭제하여 전송
       testGrades: filledExams.map((exam: MockExamSlot) => ({
         year: Number(exam.year) || 2026,
         month: convertExamMonth(exam.examType),

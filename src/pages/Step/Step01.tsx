@@ -16,6 +16,7 @@ const Step01 = () => {
 
   const handleNextStep = () => {
     const requiredFields = {
+      gender: studentInfo.gender,
       status: studentInfo.status,
       track: studentInfo.track,
       targetRegion: studentInfo.targetRegion,
@@ -38,6 +39,14 @@ const Step01 = () => {
       />
 
       <div className="space-y-6">
+        <SelectionCard
+          title="성별"
+          icon="⭐️"
+          options={["남자", "여자"]}
+          value={studentInfo.gender}
+          onChange={(val) => handleUpdate("gender", val)}
+        />
+
         <SelectionCard
           title="현재 상태"
           icon="🎓"
@@ -70,9 +79,10 @@ const Step01 = () => {
           value={studentInfo.targetRegion}
           onChange={(val) => handleUpdate("targetRegion", val)}
         />
+
         <SelectionCard
           title="지원 논술 개수"
-          icon="🃏"
+          icon="✏️"
           options={["1개", "2개", "3개", "4개", "5개", "6개"]}
           value={studentInfo.essayCount}
           onChange={(val) => handleUpdate("essayCount", val)}
