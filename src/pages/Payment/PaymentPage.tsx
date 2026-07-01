@@ -3,16 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { nanoid } from "nanoid";
 
-// 🔑 클라이언트 상점의 진짜 테스트 클라이언트 키
 const clientKey = "test_gck_6bJXmgo28e7L4YD7kxJwVLAnGKWx";
 const customerKey = nanoid();
 
 const PaymentPage = () => {
   const [email, setEmail] = useState("");
-  // V2 전용 위젯 컨트롤러 ref
+
   const widgetsRef = useRef<any>(null);
 
-  // 🛡️ React Strict Mode 중복 실행 방어벽
   const isInitialized = useRef(false);
   const price = 10000;
 
@@ -21,19 +19,15 @@ const PaymentPage = () => {
     isInitialized.current = true;
 
     (async () => {
-      // 1. 최신 V2 라이브러리 초기화
       const tossPayments = await loadTossPayments(clientKey);
 
-      // 2. 위젯 컨트롤러 객체 생성
       const widgets = tossPayments.widgets({ customerKey });
 
-      // 3. 결제 금액 및 통화 설정 (V2 필수 단계)
       await widgets.setAmount({
         value: price,
         currency: "KRW",
       });
 
-      // 4. 결제 수단과 약관 UI를 각각의 구역에 동시 렌더링
       await Promise.all([
         widgets.renderPaymentMethods({ selector: "#payment-element" }),
         widgets.renderAgreement({ selector: "#agreement-element" }),
@@ -50,7 +44,6 @@ const PaymentPage = () => {
     }
 
     try {
-      // 5. V2 스펙에 맞춘 결제창 호출
       await widgetsRef.current?.requestPayment({
         orderId: nanoid(),
         orderName: "논술핏 프리미엄 온라인 모의고사 (1회분)",
@@ -74,9 +67,7 @@ const PaymentPage = () => {
         </p>
       </div>
 
-      {/* 💡 핵심 수정 구역: 맥북에서 패딩을 더 늘리고 싶다면 뒤쪽의 md:px-12, md:pt-14 부분을 수정하셔야 반영됩니다! */}
       <div className="w-full border border-dashed border-gray-200 bg-white rounded-xl px-6 pt-10 pb-4 md:px-12 md:pt-14 md:pb-6 shadow-sm">
-        {/* 1. 주문 상품 정보 영역 */}
         <div className="space-y-3">
           <h3 className="text-xs font-bold text-gray-400 uppercase">
             주문 상품 정보
@@ -90,8 +81,6 @@ const PaymentPage = () => {
             </span>
           </div>
         </div>
-
-        {/* 2. 이메일 입력 섹션 */}
         <div className="space-y-3 mt-6 md:mt-8">
           <label className="text-sm font-extrabold text-gray-800 block">
             📩 문제를 받아보실 이메일 주소{" "}
@@ -109,13 +98,8 @@ const PaymentPage = () => {
             자동 발송됩니다.
           </p>
         </div>
-
-        {/* 3. 토스 결제 수단 영역 */}
         <div id="payment-element" className="w-full mt-4" />
-
-        {/* 4. 하단 결제 인터랙션 영역 */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8 pt-4 border-t border-gray-100 mt-0">
-          {/* 토스 약관 동의 영역 */}
           <div id="agreement-element" className="w-full md:flex-1" />
 
           <button

@@ -7,7 +7,6 @@ interface UnivDetailSummaryProps {
 const UnivDetailSummary = ({ currentUniversity }: UnivDetailSummaryProps) => {
   if (!currentUniversity) return null;
 
-  // 💡 포장된 첫 번째 레벨 변수들과 내부 summary, explanations를 동시에 구조 분해합니다.
   const {
     university,
     campus,
@@ -71,7 +70,7 @@ const UnivDetailSummary = ({ currentUniversity }: UnivDetailSummaryProps) => {
           { label: "시험일", value: summary.examDateText || "일정 참조" },
           {
             label: "문제유형",
-            // 훅 내부 가공 정책에 의존하거나 기본 매핑 적용
+
             value:
               summary.difficultyCode === "HIGHEST"
                 ? "다면사고형 / 영어제시문 복합"

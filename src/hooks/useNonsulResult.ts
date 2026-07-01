@@ -6,7 +6,7 @@ import type { FilterType } from "../components/molecules/result/ResultHeader";
 export const useNonsulResult = (
   id: string | undefined,
   filter: FilterType,
-  limit: number = 4, // 💡 Result.tsx 에러 방지를 위해 매개변수는 유지합니다.
+  limit: number = 4,
 ) => {
   const [universityList, setUniversityList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,8 +35,6 @@ export const useNonsulResult = (
         if (filter === "적정") backendCategory = "MODERATE";
         if (filter === "하향") backendCategory = "SAFE";
 
-        // 🔑 백엔드 요청 반영: 세 번째 인자(limit)를 전송 가방에서 완전히 제거!
-        // 이제 백엔드가 DB에 저장된 유저의 essayCount를 보고 알아서 개수를 맞춰 줍니다.
         const response = (await getResultData(
           targetId,
           backendCategory,
@@ -50,7 +48,6 @@ export const useNonsulResult = (
         );
         console.log("🔥 승효님 백엔드가 준 진짜 데이터:", response);
 
-        // 🔑 백엔드 요청 반영: 프론트에서 강제로 개수를 자르던 .slice() 로직 삭제!
         const backendList = response.result || [];
 
         if (backendList.length === 0) {

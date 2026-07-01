@@ -22,7 +22,6 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
 
   const getAccessToken = () => localStorage.getItem("accessToken");
 
-  // [GET] 과거 채팅 내역 불러오기
   const fetchChatHistory = async () => {
     if (!savedAnalysisReportId) return;
 
@@ -41,7 +40,6 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
     }
   };
 
-  // [POST] 메시지 전송
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -54,7 +52,6 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
     const userMessage = inputValue;
     setInputValue("");
 
-    // 1. 내 말풍선 즉시 띄우기
     const tempUserChat: ChatMessage = {
       id: `user-${Date.now()}`,
       type: "USER",
@@ -79,7 +76,6 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      // 2. 백엔드 응답 매칭
       const botMessage: ChatMessage = {
         id: response.data.id,
         type: response.data.type,
@@ -95,11 +91,10 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error: any) {
-      // 🚨 [핵심 변경 포인트] 백엔드가 뱉은 진짜 에러 원인을 콘솔에 상세히 해부해서 찍어줍니다.
       console.error("❌ [ChatBtn 에러 발생] 백엔드가 반환한 진짜 에러:");
       if (error.response) {
-        console.error("➡️ 에러 상태 코드 (Status):", error.response.status); // 예: 500, 422, 400
-        console.error("➡️ 에러 내용 (Data):", error.response.data); // 백엔드가 보낸 에러 상세 메시지
+        console.error("➡️ 에러 상태 코드 (Status):", error.response.status);
+        console.error("➡️ 에러 내용 (Data):", error.response.data);
       } else {
         console.error("➡️ 에러 메시지:", error.message);
       }
@@ -154,7 +149,6 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
                 </p>
               </div>
             ) : (
-              // ✨ 고유 Key 경고 문제를 완전히 방어하도록 index 조합 코드를 적용했습니다.
               messages.map((msg, index) => (
                 <div
                   key={msg.id || `${msg.type}-${index}`}

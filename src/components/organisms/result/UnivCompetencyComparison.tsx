@@ -21,7 +21,6 @@ const UnivCompetencyComparison = ({
 }: UnivCompetencyComparisonProps) => {
   if (!currentUniversity) return null;
 
-  // 💡 훅이 포장해준 radarChartData 배열과 summary 객체를 매핑합니다.
   const { radarChartData = [], summary = {} } = currentUniversity;
 
   const customChartData = radarChartData.map((item: any, idx: number) => {
@@ -102,7 +101,7 @@ const UnivCompetencyComparison = ({
                 data={customChartData}
               >
                 <PolarGrid stroke="#e2e8f0" />
-                {/* 🎯 font={ 800 } 오타 교정 완료! */}
+
                 <PolarAngleAxis
                   dataKey="subject"
                   tick={{ fontSize: 11, fontWeight: 800, fill: "#475569" }}

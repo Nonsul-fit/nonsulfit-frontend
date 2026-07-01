@@ -21,10 +21,8 @@ function App() {
       <BrowserRouter>
         <FormProvider>
           <Routes>
-            {/* 🎯 2. 시작 화면(/)을 로그인 페이지 강제 이동 대신 '랜딩 페이지'로 전면 교체! */}
             <Route path="/" element={<LandingPage />} />
 
-            {/* 로그인과 회원가입은 필요할 때 따로 이동하도록 독립시킵니다 */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
 
@@ -36,10 +34,8 @@ function App() {
               <Route path="/result" element={<ResultList />} />
               <Route path="/result/:id" element={<Result />} />
 
-              {/* 💳 결제 메인 페이지 */}
               <Route path="/payment" element={<PaymentPage />} />
 
-              {/* 토스가 결제 완료/실패 후 리다이렉트할 라우트 */}
               <Route path="/payment/success" element={<SuccessPage />} />
               <Route path="/payment/fail" element={<FailPage />} />
 

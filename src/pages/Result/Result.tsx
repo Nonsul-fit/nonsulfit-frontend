@@ -17,15 +17,12 @@ const Result = () => {
   const [filter, setFilter] = useState<FilterType>("상향");
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
-  // 🔑 2. 전역 상태에서 studentInfo(유저가 선택한 카드 개수 포함) 가져오기
   const { studentInfo } = useFormContext();
 
-  // 🔑 3. "6개" 문자열에서 "개"를 빼고 숫자로 변환 (기본값 4)
   const selectedLimit = studentInfo?.essayCount
     ? Number(studentInfo.essayCount.replace("개", ""))
     : 4;
 
-  // 🔑 4. 훅 호출할 때 세 번째 인자로 selectedLimit 전달!
   const { universityList, isLoading } = useNonsulResult(
     id,
     filter,

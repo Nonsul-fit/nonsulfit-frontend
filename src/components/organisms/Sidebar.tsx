@@ -1,7 +1,6 @@
 import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
-  // 💳 모의 테스트 메뉴와 페이먼트 경로(/payment)를 추가했습니다!
   const menus = [
     { name: "성적 입력", path: "/home" },
     { name: "분석 리포트", path: "/result" },
