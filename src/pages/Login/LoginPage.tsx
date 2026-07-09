@@ -18,24 +18,20 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!values.email || !values.password) {
+    const email = values.email.trim();
+    const password = values.password.trim();
+
+    if (!email || !password) {
       alert("이메일과 비밀번호를 모두 입력해 주세요.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const credentials = window.btoa(`${values.email}:${values.password}`);
-
-      const response = await api.post(
-        "/auth/login",
-        {},
-        {
-          headers: {
-            Authorization: `Basic ${credentials}`,
-          },
-        },
-      );
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
 
       const { accessToken, refreshToken, user } = response.data;
       localStorage.setItem("accessToken", accessToken);

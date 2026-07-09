@@ -9,18 +9,18 @@ const api = axios.create({
   },
 });
 
+const isAuthExcludedUrl = (url?: string) =>
+  url?.includes("/auth/login") ||
+  url?.includes("/login") ||
+  url?.includes("/auth/register") ||
+  url?.includes("/signup") ||
+  url?.includes("/auth/check-email");
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
 
-    const isNoTokenRequired =
-      config.url?.includes("/auth/login") ||
-      config.url?.includes("/login") ||
-      config.url?.includes("/auth/register") ||
-      config.url?.includes("/signup") ||
-      config.url?.includes("/auth/check-email");
-
-    if (token && !isNoTokenRequired) {
+    if (token && !isAuthExcludedUrl(config.url)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -36,7 +36,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthExcludedUrl(originalRequest.url)
+    ) {
       originalRequest._retry = true;
 
       try {
