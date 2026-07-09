@@ -26,8 +26,8 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
       color: "text-gray-800",
     },
     {
-      label: "예상 합격 확률",
-      value: `${summary?.passProbability ?? 0}%`,
+      label: "적합도 지표",
+      value: `${summary?.suitabilityScore ?? 0}점`,
       color: "text-gray-800",
     },
   ];

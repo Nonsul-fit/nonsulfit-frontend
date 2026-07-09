@@ -46,7 +46,7 @@ export const mapLegacyResultToUniversityList = (response: any): any[] => {
           prog.csatRequirement?.requirementText || "수능최저 없음",
         examDateText: prog.examDate || "대학 홈페이지 참조",
         latestCompetitionRate: prog.competitionRateLatest || 0,
-        passProbability: item.estimatedChance || 65,
+        suitabilityScore: item.estimatedChance || 65,
         myTotalScore: item.totalScore || 82,
         cutoffScore: 75,
         isCsatComplied: true,

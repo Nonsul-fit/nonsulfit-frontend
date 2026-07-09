@@ -16,7 +16,7 @@ export interface UniversityReport {
     csatRequirement: string;
     examDateText?: string;
     latestCompetitionRate: number;
-    passProbability: number;
+    suitabilityScore: number;
     myTotalScore: number;
     cutoffScore: number;
     isCsatComplied: boolean;
@@ -61,7 +61,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "수능최저 없음",
         examDateText: "2026년 10월 3일(토) 예정",
         latestCompetitionRate: 65.3,
-        passProbability: 45,
+        suitabilityScore: 45,
         myTotalScore: 72,
         cutoffScore: 85,
         isCsatComplied: true,
@@ -110,7 +110,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "수능최저 없음",
         examDateText: "2026년 11월 22일(일) 예정",
         latestCompetitionRate: 78.4,
-        passProbability: 58,
+        suitabilityScore: 58,
         myTotalScore: 76,
         cutoffScore: 82,
         isCsatComplied: true,
@@ -159,7 +159,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 5",
         examDateText: "2026년 11월 21일(토) 예정",
         latestCompetitionRate: 48.72,
-        passProbability: 80,
+        suitabilityScore: 80,
         myTotalScore: 82,
         cutoffScore: 78,
         isCsatComplied: true,
@@ -176,7 +176,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         notes: ["인문논술 그림해석 출제 가능"],
         recommendationReason: "내신 감점 리스크가 극도로 낮은 전형입니다.",
         selectionReason:
-          "모의평가 기반 2합 5 충족률이 현재 90% 이상을 상회하고 있으며, 수민님의 도표 분석 보정 점수가 5.0 만점으로 연산되어 가장 확실한 승리를 가져올 메인 적정 카드입니다.",
+          "모의평가 기반 2합 5 충족 안정성이 높고, 수민님의 도표 분석 보정 점수가 5.0 만점으로 연산되어 가장 확실한 승리를 가져올 메인 적정 카드입니다.",
         essayFeedback:
           "복잡한 통계 도표와 인문 텍스트 지문을 유기적으로 엮어내는 힘이 매우 탁월합니다. 제시문 간의 대조 구조를 명확하게 짚어내어 채점자 가독성이 뛰어난 답안을 작성하고 있습니다.",
         entranceStrategy:
@@ -208,7 +208,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 6",
         examDateText: "2026년 11월 28일(토) 예정",
         latestCompetitionRate: 35.2,
-        passProbability: 85,
+        suitabilityScore: 85,
         myTotalScore: 84,
         cutoffScore: 75,
         isCsatComplied: true,
@@ -257,7 +257,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 6",
         examDateText: "2026년 11월 22일(일) 예정",
         latestCompetitionRate: 32.1,
-        passProbability: 92,
+        suitabilityScore: 92,
         myTotalScore: 88,
         cutoffScore: 70,
         isCsatComplied: true,
@@ -306,7 +306,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "수능최저 없음",
         examDateText: "2026년 11월 14일(토) 예정",
         latestCompetitionRate: 24.5,
-        passProbability: 97,
+        suitabilityScore: 97,
         myTotalScore: 91,
         cutoffScore: 65,
         isCsatComplied: true,
@@ -329,7 +329,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         entranceStrategy:
           "시험 시간이 배정된 문항 난이도에 비해 대단히 넉넉합니다. 답안 작성을 빠르게 마친 뒤 오탈자와 주술 호응 관계를 완벽히 재검토할 시간을 반드시 확보해야 합니다.",
         departmentRecommendation:
-          "최하단 안정 방어선 구축이라는 기획 목적에 100% 부합하도록, 전통적으로 합격선 안정 추세를 보이는 국어국문학과 슬롯 배정을 추천합니다.",
+          "최하단 안정 방어선 구축이라는 기획 목적에 잘 부합하도록, 전통적으로 합격선 안정 추세를 보이는 국어국문학과 슬롯 배정을 추천합니다.",
       },
       departments: [
         {
@@ -361,7 +361,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "3합 6",
         examDateText: "2026년 11월 21일(토) 예정",
         latestCompetitionRate: 92.1,
-        passProbability: 38,
+        suitabilityScore: 38,
         myTotalScore: 70,
         cutoffScore: 88,
         isCsatComplied: true,
@@ -382,7 +382,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         essayFeedback:
           "3개 문항 간의 유기적 연결성과 핵심 주장 도출이 대단히 세련되었습니다. 다만 최상위권 스나이핑을 확실시하기 위해 제시문 어휘를 보다 학술적 키워드로 정교화하는 작업이 필요합니다.",
         entranceStrategy:
-          "3개 영역 등급 합 6이라는 높은 수능최저 장벽이 존재합니다. 최저만 충족하면 실질 경쟁률이 70% 이상 폭락하므로, 수능 성적 방어가 곧 합격의 핵심 열쇠입니다.",
+          "3개 영역 등급 합 6이라는 높은 수능최저 장벽이 존재합니다. 최저만 충족하면 실질 경쟁률 부담이 크게 낮아지므로, 수능 성적 방어가 곧 합격의 핵심 열쇠입니다.",
         departmentRecommendation:
           "도표 및 통계 분석 역량에 전폭적인 가중치를 매기는 성균관대 간판 학과인 글로벌경영학과 슬롯을 지정하여 공격적 상향 지원을 감행합니다.",
       },
@@ -410,7 +410,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "3합 7",
         examDateText: "2026년 11월 22일(일) 예정",
         latestCompetitionRate: 85.4,
-        passProbability: 41,
+        suitabilityScore: 41,
         myTotalScore: 73,
         cutoffScore: 86,
         isCsatComplied: true,
@@ -459,7 +459,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "3합 6",
         examDateText: "2026년 11월 28일(토) 예정",
         latestCompetitionRate: 62.8,
-        passProbability: 52,
+        suitabilityScore: 52,
         myTotalScore: 75,
         cutoffScore: 81,
         isCsatComplied: true,
@@ -508,7 +508,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 5",
         examDateText: "2026년 11월 22일(일) 예정",
         latestCompetitionRate: 58.2,
-        passProbability: 55,
+        suitabilityScore: 55,
         myTotalScore: 77,
         cutoffScore: 80,
         isCsatComplied: true,
@@ -557,7 +557,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "3합 6",
         examDateText: "2026년 11월 29일(일) 예정",
         latestCompetitionRate: 38.5,
-        passProbability: 72,
+        suitabilityScore: 72,
         myTotalScore: 80,
         cutoffScore: 78,
         isCsatComplied: true,
@@ -606,7 +606,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 5",
         examDateText: "2026년 11월 21일(토) 예정",
         latestCompetitionRate: 52.4,
-        passProbability: 78,
+        suitabilityScore: 78,
         myTotalScore: 81,
         cutoffScore: 76,
         isCsatComplied: true,
@@ -623,13 +623,13 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         notes: ["도표 수치 해석 주의"],
         recommendationReason: "도표 분석 역량이 뛰어난 수민님에게 적격입니다.",
         selectionReason:
-          "문학 작품 매핑 문항과 복합 도표 인과관계 추론 문항이 고정 출제됩니다. 수민님의 도표 보정 점수가 만점에 가까우므로, 합격 확률을 가장 안정적으로 쥐고 갈 수 있는 소신 적정 카드입니다.",
+          "문학 작품 매핑 문항과 복합 도표 인과관계 추론 문항이 고정 출제됩니다. 수민님의 도표 보정 점수가 만점에 가까우므로, 적합도 지표를 안정적으로 가져갈 수 있는 소신 적정 카드입니다.",
         essayFeedback:
           "도표의 변화 수치와 인문 현상의 인과관계를 자석처럼 일대일 매칭해내는 능력이 뛰어납니다. 제시문의 요약 흐름도 군더더기 없이 간결하여 감점 요소가 거의 발견되지 않습니다.",
         entranceStrategy:
           "2합 5 최저는 이미 완벽 통과선입니다. 건대 특유의 1번 문학 문항과 2번 도표 문항 간의 시간 배분 밸런스 훈련만 몇 차례 반복하면 최초합 패스를 충분히 노려볼 수 있습니다.",
         departmentRecommendation:
-          "수민님의 논리적 데이터 분석 강점을 100% 투영할 수 있고 아웃풋 만족도가 대단히 우수한 미디어커뮤니케이션학과 적극 추천 전략을 고수합니다.",
+          "수민님의 논리적 데이터 분석 강점을 충분히 투영할 수 있고 아웃풋 만족도가 대단히 우수한 미디어커뮤니케이션학과 적극 추천 전략을 고수합니다.",
       },
       departments: [
         {
@@ -661,7 +661,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "수능최저 없음",
         examDateText: "2026년 11월 22일(일) 예정",
         latestCompetitionRate: 78.4,
-        passProbability: 58,
+        suitabilityScore: 58,
         myTotalScore: 76,
         cutoffScore: 82,
         isCsatComplied: true,
@@ -710,7 +710,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "3합 6",
         examDateText: "2026년 11월 28일(토) 예정",
         latestCompetitionRate: 62.8,
-        passProbability: 61,
+        suitabilityScore: 61,
         myTotalScore: 78,
         cutoffScore: 81,
         isCsatComplied: true,
@@ -727,13 +727,13 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         notes: ["수리 문항 완성도가 변수"],
         recommendationReason: "최저 충족 시 합격 마진이 대폭 상승합니다.",
         selectionReason:
-          "수능최저 3합 6 마진의 안정화로 인해 중앙대 합격 마진폭이 이전 시뮬레이션보다 대폭 60% 이상 상승하였습니다. 적정 팩 내에서 가장 기대 수익률이 높은 소신 카드입니다.",
+          "수능최저 3합 6 마진의 안정화로 인해 중앙대 지원 적합도가 이전 시뮬레이션보다 대폭 상승하였습니다. 적정 팩 내에서 가장 기대 수익률이 높은 소신 카드입니다.",
         essayFeedback:
           "인문 파트의 완성도가 매우 견고하여 감점 방어선이 확실합니다. 당락의 키를 쥐고 있는 3번 수리논술의 통계 확률 계산식 도출 템플릿만 최종 점검해 주면 완벽합니다.",
         entranceStrategy:
           "높은 수능최저 충족 여력이 수민님의 가장 큰 무기입니다. 인문 파트 서술 시간을 5분 숏컷하고, 확보한 시간을 3번 수리 문항 검산에 전폭 투자하는 시간 안배 전략이 유효합니다.",
         departmentRecommendation:
-          "정량적 수리 강점 인덱스와 완벽하게 상호 결합하며 합격 확률 마진이 가장 높게 터지는 응용통계학과 배치를 고수합니다.",
+          "정량적 수리 강점 인덱스와 완벽하게 상호 결합하며 지원 적합도 마진이 가장 높게 터지는 응용통계학과 배치를 고수합니다.",
       },
       departments: [
         {
@@ -758,7 +758,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         naesinRatio: 30,
         csatRequirement: "2합 5",
         latestCompetitionRate: 48.72,
-        passProbability: 80,
+        suitabilityScore: 80,
         myTotalScore: 82,
         cutoffScore: 78,
         isCsatComplied: true,
@@ -806,7 +806,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         naesinRatio: 30,
         csatRequirement: "2합 6",
         latestCompetitionRate: 35.2,
-        passProbability: 85,
+        suitabilityScore: 85,
         myTotalScore: 84,
         cutoffScore: 75,
         isCsatComplied: true,
@@ -854,7 +854,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         naesinRatio: 30,
         csatRequirement: "2합 6",
         latestCompetitionRate: 32.1,
-        passProbability: 92,
+        suitabilityScore: 92,
         myTotalScore: 88,
         cutoffScore: 70,
         isCsatComplied: true,
@@ -903,7 +903,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "수능최저 없음",
         examDateText: "2026년 11월 21일(토) 예정",
         latestCompetitionRate: 39.2,
-        passProbability: 94,
+        suitabilityScore: 94,
         myTotalScore: 89,
         cutoffScore: 72,
         isCsatComplied: true,
@@ -958,7 +958,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "3합 6",
         examDateText: "2026년 11월 28일(토) 예정",
         latestCompetitionRate: 62.8,
-        passProbability: 61,
+        suitabilityScore: 61,
         myTotalScore: 78,
         cutoffScore: 81,
         isCsatComplied: true,
@@ -980,7 +980,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         essayFeedback:
           "인문 논리 구성은 이미 합격 완성 궤도입니다. 상경계 당락을 가르는 3번 수리 문항의 정밀도를 파이널 시기에 한 단계만 더 클리닉해 주면 소신 대역전극이 충분히 현실화됩니다.",
         entranceStrategy:
-          "3합 6 최저 통과선이 확보되는 순간 합격 확률 마진이 급등합니다. 수능 직후 중앙대 상경 전용 수리 공식 및 서술 매커니즘 템플릿 학습에 모든 화력을 핀포인트 집중합니다.",
+          "3합 6 최저 통과선이 확보되는 순간 지원 적합도 마진이 급등합니다. 수능 직후 중앙대 상경 전용 수리 공식 및 서술 매커니즘 템플릿 학습에 모든 화력을 핀포인트 집중합니다.",
         departmentRecommendation:
           "수민님의 정량 데이터 연산 강점 밸류와 완벽히 맞아떨어지는 전통의 간판 모집 단위인 경영학부 배치를 최종 확정합니다.",
       },
@@ -1008,7 +1008,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 5",
         examDateText: "2026년 11월 21일(토) 예정",
         latestCompetitionRate: 48.72,
-        passProbability: 80,
+        suitabilityScore: 80,
         myTotalScore: 82,
         cutoffScore: 78,
         isCsatComplied: true,
@@ -1058,7 +1058,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 6",
         examDateText: "2026년 11월 28일(토) 예정",
         latestCompetitionRate: 35.2,
-        passProbability: 85,
+        suitabilityScore: 85,
         myTotalScore: 84,
         cutoffScore: 75,
         isCsatComplied: true,
@@ -1107,7 +1107,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "2합 6",
         examDateText: "2026년 11월 22일(일) 예정",
         latestCompetitionRate: 32.1,
-        passProbability: 92,
+        suitabilityScore: 92,
         myTotalScore: 88,
         cutoffScore: 70,
         isCsatComplied: true,
@@ -1126,7 +1126,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         selectionReason:
           "수민님의 현재 모의논술 텍스트 분석 및 단락 요약 스펙이 대학교 합격 가이드 라인을 압도적으로 추월해 있습니다. 하향 안전판으로서 결함이 전혀 없는 강력한 서울권 보루입니다.",
         essayFeedback:
-          "지문의 가독성이 평이하여 오독의 확률이 0%에 수렴합니다. 정형화된 비교 대조 논제를 물 흐르듯 명확하게 서술해내고 있어, 실전에서 만점 수준에 가까운 점수를 선점할 수 있습니다.",
+          "지문의 가독성이 평이하여 오독 리스크가 낮습니다. 정형화된 비교 대조 논제를 물 흐르듯 명확하게 서술해내고 있어, 실전에서 만점 수준에 가까운 점수를 선점할 수 있습니다.",
         entranceStrategy:
           "글자 수 상하한 규칙 엄수 및 원고지 작성 오차 방지 등 기본 기본기 페이스만 차분하게 유지해 주면 됩니다. 절대적인 심리적 안정을 도출할 보험 카드로 정착시킵니다.",
         departmentRecommendation:
@@ -1156,7 +1156,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "수능최저 없음",
         examDateText: "2026년 11월 14일(토) 예정",
         latestCompetitionRate: 24.5,
-        passProbability: 97,
+        suitabilityScore: 97,
         myTotalScore: 91,
         cutoffScore: 65,
         isCsatComplied: true,
@@ -1173,7 +1173,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         notes: ["시간 배분 넉넉함"],
         recommendationReason: "변수가 거의 없는 확실한 보험 카드입니다.",
         selectionReason:
-          "수능최저학력 리스크가 0%이며 문항의 난이도 스펙이 매우 직관적입니다. 실전 당일 컨디션 변수가 발생하더라도 최종 패스 컷 라인을 확실하게 묶어낼 수 있는 견고한 후방 기지입니다.",
+          "수능최저학력 리스크가 낮고 문항의 난이도 스펙이 매우 직관적입니다. 실전 당일 컨디션 변수가 발생하더라도 최종 패스 컷 라인을 확실하게 묶어낼 수 있는 견고한 후방 기지입니다.",
         essayFeedback:
           "지문의 핵심을 정직하고 명료한 어조로 가공해내는 밸런스가 매우 탁월합니다. 불필요한 사족 없이 요구 조건만을 정확히 관통하는 문장 호흡력이 단국대 채점 기준을 상회합니다.",
         entranceStrategy:
@@ -1205,7 +1205,7 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
         csatRequirement: "1개 3등급",
         examDateText: "2026년 11월 15일(일) 예정",
         latestCompetitionRate: 42.1,
-        passProbability: 99,
+        suitabilityScore: 99,
         myTotalScore: 95,
         cutoffScore: 60,
         isCsatComplied: true,
@@ -1220,11 +1220,11 @@ export const mockReportMap: Record<string, UniversityReport[]> = {
       explanations: {
         comment: "단답 약술형 전형",
         notes: ["시간 부족 리스크 제로"],
-        recommendationReason: "99% 합격을 자랑하는 절대 방어기지 카드입니다.",
+        recommendationReason: "높은 적합도 지표를 보이는 절대 방어기지 카드입니다.",
         selectionReason:
-          "EBS 교재 연계율이 100%에 육박하는 약술형 국어/수학 단답형 문항입니다. 수민님의 뛰어난 수능형 단답 요약 역량상 사실상 불합격 가능성이 0%에 수렴하는 절대 안전 기지 카드입니다.",
+          "EBS 교재 연계도가 높은 약술형 국어/수학 단답형 문항입니다. 수민님의 뛰어난 수능형 단답 요약 역량상 매우 안정적인 절대 안전 기지 카드입니다.",
         essayFeedback:
-          "장황한 장문 서술이 배제된 문항 구조상, 핵심 단답 정답 매칭 지표가 100% 만점을 달성했습니다. 출제 의도와 일치하는 명확한 공식 노출력이 압도적인 수준을 형성하고 있습니다.",
+          "장황한 장문 서술이 배제된 문항 구조상, 핵심 단답 정답 매칭 지표가 만점권에 도달했습니다. 출제 의도와 일치하는 명확한 공식 노출력이 압도적인 수준을 형성하고 있습니다.",
         entranceStrategy:
           "1개 3등급 최저는 이미 상시 충족 상태입니다. 시험 직전 EBS 수능특강/수능완성 수민님 전용 교재의 인문/사회 지문 오답노트 주제어들만 가볍게 아이트래킹 해주는 수준으로 마무리 정돈합니다.",
         departmentRecommendation:
