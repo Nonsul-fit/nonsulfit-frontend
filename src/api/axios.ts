@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://nonsulfit-backend-production.up.railway.app",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 
   timeout: 60000,
   headers: {
@@ -47,7 +47,7 @@ api.interceptors.response.use(
         }
 
         const response = await axios.post(
-          "https://nonsulfit-backend-production.up.railway.app/auth/token/access",
+          `${import.meta.env.VITE_API_BASE_URL}/auth/token/access`,
           {},
           {
             headers: { Authorization: `Bearer ${refreshToken}` },

@@ -29,7 +29,7 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
     try {
       const token = getAccessToken();
       const response = await axios.get(
-        `https://nonsulfit-backend-production.up.railway.app/nonsulfit/chat/${savedAnalysisReportId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${savedAnalysisReportId}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setMessages(response.data.chat || []);
@@ -71,7 +71,7 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
       );
 
       const response = await axios.post(
-        `https://nonsulfit-backend-production.up.railway.app/nonsulfit/chat/${savedAnalysisReportId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${savedAnalysisReportId}`,
         { message: userMessage },
         { headers: { Authorization: `Bearer ${token}` } },
       );
