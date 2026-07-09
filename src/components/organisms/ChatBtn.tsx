@@ -8,10 +8,10 @@ interface ChatMessage {
 }
 
 interface ChatBtnProps {
-  savedAnalysisReportId: string | number | undefined;
+  reportId: string | number | undefined;
 }
 
-const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
+const ChatBtn = ({ reportId }: ChatBtnProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -23,13 +23,13 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
   const getAccessToken = () => localStorage.getItem("accessToken");
 
   const fetchChatHistory = async () => {
-    if (!savedAnalysisReportId) return;
+    if (!reportId) return;
 
     setIsLoading(true);
     try {
       const token = getAccessToken();
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${savedAnalysisReportId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${reportId}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setMessages(response.data.chat || []);
@@ -44,7 +44,7 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    if (!savedAnalysisReportId) {
+    if (!reportId) {
       alert("리포트 정보(ID)를 찾을 수 없어 채팅을 보낼 수 없습니다.");
       return;
     }
@@ -66,12 +66,12 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
       console.log("🧐 [ChatBtn 디버깅] 현재 백엔드로 보내는 정보:");
       console.log("➡️ 전송할 토큰(Token):", token);
       console.log(
-        "➡️ 리포트 ID(savedAnalysisReportId):",
-        savedAnalysisReportId,
+        "➡️ 리포트 ID(reportId):",
+        reportId,
       );
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${savedAnalysisReportId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${reportId}`,
         { message: userMessage },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -117,7 +117,7 @@ const ChatBtn = ({ savedAnalysisReportId }: ChatBtnProps) => {
     if (isOpen) {
       fetchChatHistory();
     }
-  }, [isOpen, savedAnalysisReportId]);
+  }, [isOpen, reportId]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });

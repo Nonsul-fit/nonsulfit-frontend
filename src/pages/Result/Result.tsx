@@ -18,7 +18,7 @@ import { useFormContext } from "../../context/FormContext"; // 🔑 1. 컨텍스
 
 const Result = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const { reportId } = useParams<{ reportId: string }>();
 
   const [filter, setFilter] = useState<FilterType>("상향");
   const [activeIdx, setActiveIdx] = useState<number>(0);
@@ -30,7 +30,7 @@ const Result = () => {
     : 4;
 
   const { recommendedPrograms, generatedReportV2, isLoading } = useNonsulResult(
-    id,
+    reportId,
     filter,
     selectedLimit,
   );
@@ -126,7 +126,7 @@ const Result = () => {
         </div>
       )}
 
-      <ChatBtn savedAnalysisReportId={id} />
+      <ChatBtn reportId={reportId} />
     </div>
   );
 };

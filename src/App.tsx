@@ -34,7 +34,7 @@ function App() {
                 <Route path="/step03" element={<Step03 />} />
                 <Route path="/loading" element={<LoadingPage />} />
                 <Route path="/result" element={<ResultList />} />
-                <Route path="/result/:id" element={<Result />} />
+                <Route path="/result/:reportId" element={<Result />} />
 
                 <Route path="/payment" element={<PaymentPage />} />
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { getResultData } from "../types/nonsulService";
-import api from "../api/axios";
+import { getReportData } from "../types/nonsulService";
 import type { FilterType } from "../components/molecules/result/ResultHeader";
 import { mapReportPayloadV2 } from "../adapters/reportV2Mapper";
 import type {
@@ -16,17 +15,29 @@ const filterBucketKey: Record<FilterType, PortfolioBucketKey> = {
   상향: "reach",
 };
 
-const legacyRequestBuckets = [
-  { requestBucket: "SAFE", displayBucket: "stable" },
-  { requestBucket: "MODERATE", displayBucket: "target" },
-  { requestBucket: "RISKY", displayBucket: "reach" },
-] as const;
-
 const toRecord = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 
+const displayBucketByFilter: Record<FilterType, "stable" | "target" | "reach"> =
+  {
+    하향: "stable",
+    적정: "target",
+    상향: "reach",
+  };
+
+const unwrapReportPayload = (payload: unknown): unknown => {
+  const record = toRecord(payload);
+  return (
+    record?.generatedReportV2 ??
+    record?.generated_report_v2 ??
+    record?.report ??
+    record?.data ??
+    payload
+  );
+};
+
 export const useNonsulResult = (
-  id: string | undefined,
+  reportId: string | undefined,
   filter: FilterType,
   limit: number = 4,
 ) => {
@@ -43,70 +54,43 @@ export const useNonsulResult = (
     const fetchBackendData = async () => {
       setIsLoading(true);
       try {
-        let targetId = id;
-
-        if (!targetId) {
-          const listResponse = await api.get("/nonsulfit/result");
-          const listResponseData = toRecord(listResponse.data);
-          const reports = Array.isArray(listResponseData?.result)
-            ? listResponseData.result
-            : [];
-
-          if (reports.length === 0) {
-            if (!ignore) {
-              setRecommendedPrograms([]);
-              setGeneratedReportV2(null);
-            }
-            setIsLoading(false);
-            return;
+        if (!reportId) {
+          if (!ignore) {
+            setRecommendedPrograms([]);
+            setGeneratedReportV2(null);
           }
-
-          const maxId = Math.max(
-            ...reports.map((report) => Number(toRecord(report)?.id)),
-          );
-          targetId = String(maxId);
+          return;
         }
 
-        const legacyResponses = await Promise.all(
-          legacyRequestBuckets.map(({ requestBucket }) =>
-            getResultData(targetId, requestBucket, String(limit)),
-          ),
-        );
-        const reportV2Response = legacyResponses.find(
-          (response) => !!toRecord(response)?.generatedReportV2,
-        );
+        const reportResponse = await getReportData(reportId);
         const generatedReport = mapReportPayloadV2(
-          reportV2Response ?? {
-            result: legacyResponses.flatMap((response, idx) => {
-              const responseRecord = toRecord(response);
-              return Array.isArray(responseRecord?.result)
-                ? responseRecord.result.map((item) => ({
-                    ...(toRecord(item) ?? {}),
-                    displayBucket: legacyRequestBuckets[idx].displayBucket,
-                  }))
-                : [];
-            }),
-          },
+          unwrapReportPayload(reportResponse),
         );
         const selectedBucket = generatedReport.portfolioStrategy[
           filterBucketKey[filter]
         ] ?? { programIds: [] };
         const selectedProgramIds = new Set(selectedBucket.programIds);
-        const selectedPrograms = generatedReport.recommendedPrograms.filter(
-          (program) => selectedProgramIds.has(program.programId),
-        );
+        const selectedPrograms =
+          selectedProgramIds.size > 0
+            ? generatedReport.recommendedPrograms.filter((program) =>
+                selectedProgramIds.has(program.programId),
+              )
+            : generatedReport.recommendedPrograms.filter(
+                (program) =>
+                  program.displayBucket === displayBucketByFilter[filter],
+              );
 
         console.log(
           "📍 [useNonsulResult] 요청 정보 -> ID:",
-          targetId,
+          reportId,
           " | 필터:",
           filter,
         );
-        console.log("🔥 승효님 백엔드가 준 진짜 데이터:", legacyResponses);
+        console.log("🔥 승효님 백엔드가 준 진짜 데이터:", reportResponse);
 
         if (!ignore) {
           setGeneratedReportV2(generatedReport);
-          setRecommendedPrograms(selectedPrograms);
+          setRecommendedPrograms(selectedPrograms.slice(0, limit));
         }
       } catch (e) {
         console.error("결과 리포트 연동 실패:", e);
@@ -126,7 +110,7 @@ export const useNonsulResult = (
     return () => {
       ignore = true;
     };
-  }, [id, filter, limit]);
+  }, [reportId, filter, limit]);
 
   return { recommendedPrograms, generatedReportV2, isLoading };
 };

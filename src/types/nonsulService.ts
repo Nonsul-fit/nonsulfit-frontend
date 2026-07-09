@@ -40,6 +40,13 @@ export interface AnalysisStatusResponse {
   reportId?: string | number;
 }
 
+export interface ReportListItem {
+  reportId: string | number;
+  title?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export const getInputData = async () => {
   const response = await api.get("/nonsulfit/input");
   return response.data;
@@ -69,31 +76,16 @@ export const checkAnalysisStatus = async (
   return response.data;
 };
 
-/**
+export const getReports = async (): Promise<unknown> => {
+  const response = await api.get<unknown>("/reports");
+  return response.data;
+};
 
-
- * @param savedAnalysisReportId 
- * @param category 
- * @param count 
- */
-export const getResultData = async (
-  savedAnalysisReportId: string | number,
-  category: string,
-  count: string = "6",
-): Promise<any> => {
-  let mappedCategory = category;
-  if (category === "상향") mappedCategory = "RISKY";
-  if (category === "적정") mappedCategory = "MODERATE";
-  if (category === "하향" || category === "안정") mappedCategory = "SAFE";
-
-  const response = await api.get<any>(
-    `/nonsulfit/result/${savedAnalysisReportId}`,
-    {
-      params: {
-        category: mappedCategory,
-        count,
-      },
-    },
+export const getReportData = async (
+  reportId: string | number,
+): Promise<unknown> => {
+  const response = await api.get<unknown>(
+    `/reports/${encodeURIComponent(String(reportId))}`,
   );
   return response.data;
 };

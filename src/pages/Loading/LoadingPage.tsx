@@ -1,8 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "../../api/axios";
 import { useAnalysisContext } from "../../context/AnalysisContext";
 import { checkAnalysisStatus } from "../../types/nonsulService";
+
+const toRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+
+const extractReportId = (statusResponse: unknown): string | number | null => {
+  const record = toRecord(statusResponse);
+  const report = toRecord(record?.report);
+  const data = toRecord(record?.data);
+  const reportId =
+    record?.reportId ?? report?.reportId ?? report?.id ?? data?.reportId;
+
+  return typeof reportId === "string" || typeof reportId === "number"
+    ? reportId
+    : null;
+};
 
 const LoadingPage = () => {
   const navigate = useNavigate();
@@ -37,24 +51,18 @@ const LoadingPage = () => {
 
         if (data.status === "COMPLETED") {
           clearInterval(poll);
+          const reportId = extractReportId(data);
 
-          try {
-            const listResponse = await api.get("/nonsulfit/result");
-            const reports = listResponse.data?.result || [];
-
-            if (reports.length > 0) {
-              const maxId = Math.max(...reports.map((r: any) => Number(r.id)));
-
-              navigate(`/result/${maxId}`);
-            } else {
-              navigate("/result");
-            }
-          } catch (error) {
-            console.error(
-              "최신 리포트 ID 조회 실패, 기본 목록으로 이동:",
-              error,
+          if (reportId !== null) {
+            navigate(`/result/${reportId}`, {
+              state: {
+                reportId,
+              },
+            });
+          } else {
+            setErrorMessage(
+              "분석은 완료되었지만 리포트 ID를 확인할 수 없습니다.",
             );
-            navigate("/result");
           }
         }
 
@@ -70,6 +78,7 @@ const LoadingPage = () => {
           navigate("/step03");
         }
       } catch (e) {
+        clearInterval(poll);
         console.error("체크 실패", e);
         setErrorMessage(
           "분석 상태를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",

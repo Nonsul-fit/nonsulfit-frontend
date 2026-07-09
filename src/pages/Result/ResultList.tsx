@@ -1,14 +1,55 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/axios";
 import Card from "../../components/atoms/Card";
+import { getReports } from "../../types/nonsulService";
 
 interface ReportItem {
-  id: number;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
+  reportId: string | number;
+  title?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
+
+const toRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+
+const normalizeReports = (payload: unknown): ReportItem[] => {
+  const record = toRecord(payload);
+  const rawReports = Array.isArray(payload)
+    ? payload
+    : Array.isArray(record?.reports)
+      ? record.reports
+      : Array.isArray(record?.result)
+        ? record.result
+        : [];
+
+  return rawReports
+    .map((report): ReportItem | null => {
+      const reportRecord = toRecord(report);
+      const reportId = reportRecord?.reportId ?? reportRecord?.id;
+
+      if (reportId === undefined || reportId === null || reportId === "") {
+        return null;
+      }
+
+      return {
+        reportId: reportId as string | number,
+        title:
+          typeof reportRecord?.title === "string"
+            ? reportRecord.title
+            : undefined,
+        createdAt:
+          typeof reportRecord?.createdAt === "string"
+            ? reportRecord.createdAt
+            : undefined,
+        updatedAt:
+          typeof reportRecord?.updatedAt === "string"
+            ? reportRecord.updatedAt
+            : undefined,
+      };
+    })
+    .filter((report): report is ReportItem => report !== null);
+};
 
 const ResultList = () => {
   const navigate = useNavigate();
@@ -18,8 +59,8 @@ const ResultList = () => {
   useEffect(() => {
     const fetchList = async () => {
       try {
-        const response = await api.get("/nonsulfit/result");
-        setList(response.data?.result || []);
+        const response = await getReports();
+        setList(normalizeReports(response));
       } catch (e) {
         console.error("목록 불러오기 실패:", e);
       } finally {
@@ -33,7 +74,7 @@ const ResultList = () => {
     if (!report.createdAt) {
       return {
         dateTimeChip: "0월 0일 · 오전 00:00",
-        mainTitle: `분석 리스트 ${report.id}번`,
+        mainTitle: report.title ?? `분석 리스트 ${report.reportId}번`,
       };
     }
 
@@ -50,7 +91,7 @@ const ResultList = () => {
     return {
       dateTimeChip: `${month}월 ${day}일 · ${ampm} ${displayHour}:${displayMinute}`,
 
-      mainTitle: `분석 리스트 ${report.id}번`,
+      mainTitle: report.title ?? `분석 리스트 ${report.reportId}번`,
     };
   };
 
@@ -79,10 +120,16 @@ const ResultList = () => {
 
             return (
               <Card
-                key={report.id}
+                key={report.reportId}
                 variant="white"
                 className="p-6 rounded-2xl border border-gray-100 flex justify-between items-center bg-white hover:border-primary/50 hover:shadow-lg hover:shadow-blue-900/5 transition-all duration-300 cursor-pointer group"
-                onClick={() => navigate(`/result/${report.id}`)}
+                onClick={() =>
+                  navigate(`/result/${report.reportId}`, {
+                    state: {
+                      reportId: report.reportId,
+                    },
+                  })
+                }
               >
                 <div className="space-y-2">
                   <span className="inline-flex text-[12px] md:text-[12px] bg-blue-50 text-primary font-extrabold px-2.5 py-1 rounded-md tracking-wide">
