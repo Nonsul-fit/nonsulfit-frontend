@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
+import { AnalysisProvider } from "./context/AnalysisContext";
 import { FormProvider } from "./context/FormContext";
 import MainLayout from "./layouts/MainLayout";
 import LoadingPage from "./pages/Loading/LoadingPage";
@@ -19,30 +20,32 @@ function App() {
   return (
     <div>
       <BrowserRouter>
-        <FormProvider>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
+        <AnalysisProvider>
+          <FormProvider>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
 
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
 
-            <Route element={<MainLayout />}>
-              <Route path="/home" element={<Step01 />} />
-              <Route path="/step02" element={<Step02 />} />
-              <Route path="/step03" element={<Step03 />} />
-              <Route path="/loading" element={<LoadingPage />} />
-              <Route path="/result" element={<ResultList />} />
-              <Route path="/result/:id" element={<Result />} />
+              <Route element={<MainLayout />}>
+                <Route path="/home" element={<Step01 />} />
+                <Route path="/step02" element={<Step02 />} />
+                <Route path="/step03" element={<Step03 />} />
+                <Route path="/loading" element={<LoadingPage />} />
+                <Route path="/result" element={<ResultList />} />
+                <Route path="/result/:id" element={<Result />} />
 
-              <Route path="/payment" element={<PaymentPage />} />
+                <Route path="/payment" element={<PaymentPage />} />
 
-              <Route path="/payment/success" element={<SuccessPage />} />
-              <Route path="/payment/fail" element={<FailPage />} />
+                <Route path="/payment/success" element={<SuccessPage />} />
+                <Route path="/payment/fail" element={<FailPage />} />
 
-              <Route path="/mypage" element={<div>마이페이지</div>} />
-            </Route>
-          </Routes>
-        </FormProvider>
+                <Route path="/mypage" element={<div>마이페이지</div>} />
+              </Route>
+            </Routes>
+          </FormProvider>
+        </AnalysisProvider>
       </BrowserRouter>
     </div>
   );

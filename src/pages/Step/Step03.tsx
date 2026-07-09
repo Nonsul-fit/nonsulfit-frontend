@@ -5,6 +5,7 @@ import ScoreInputBox from "../../components/molecules/step/ScoreInputBox";
 import StepHeader from "../../components/molecules/step/StepHeader";
 import StepNavigation from "../../components/molecules/step/StepNavigation";
 import FormCard from "../../components/organisms/FormCard";
+import { useAnalysisContext } from "../../context/AnalysisContext";
 import { useFormContext } from "../../context/FormContext";
 import { useFormValidation } from "../../hooks/useFormValidation";
 import type { MockExamSlot } from "../../types/admission";
@@ -14,6 +15,7 @@ const Step03 = () => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const navigate = useNavigate();
   const { validateRequired } = useFormValidation();
+  const { setAnalysisRunId } = useAnalysisContext();
   const { studentInfo, essayInfo, academicInfo, setAcademicInfo } =
     useFormContext();
 
@@ -124,8 +126,16 @@ const Step03 = () => {
     };
 
     saveInputData(formattedPayload)
-      .then(() => {
-        navigate("/loading");
+      .then((data) => {
+        if (!data.analysisRunId) {
+          setServerError(
+            "⚠️ 분석 실행 ID를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+          );
+          return;
+        }
+
+        setAnalysisRunId(data.analysisRunId);
+        navigate("/loading", { state: { analysisRunId: data.analysisRunId } });
       })
       .catch((error: any) => {
         console.error("백엔드 전송 중 에러 발생:", error);

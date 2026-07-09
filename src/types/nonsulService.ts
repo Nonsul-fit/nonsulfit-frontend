@@ -28,18 +28,44 @@ export interface ResultResponse {
   result: UniversityReport[];
 }
 
+export interface SaveInputDataResponse {
+  analysisRunId: string;
+}
+
+export type AnalysisStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
+
+export interface AnalysisStatusResponse {
+  status: AnalysisStatus;
+  errorMessage?: string;
+  reportId?: string | number;
+}
+
 export const getInputData = async () => {
   const response = await api.get("/nonsulfit/input");
   return response.data;
 };
 
-export const saveInputData = async (inputData: any) => {
-  const response = await api.put("/nonsulfit/input", inputData);
+export const saveInputData = async (
+  inputData: any,
+): Promise<SaveInputDataResponse> => {
+  const response = await api.put<SaveInputDataResponse>(
+    "/nonsulfit/input",
+    inputData,
+  );
   return response.data;
 };
 
-export const checkAnalysisStatus = async () => {
-  const response = await api.get(`/nonsulfit/status?_t=${Date.now()}`);
+export const checkAnalysisStatus = async (
+  analysisRunId: string,
+): Promise<AnalysisStatusResponse> => {
+  const response = await api.get<AnalysisStatusResponse>(
+    `/nonsulfit/analyses/${encodeURIComponent(analysisRunId)}/status`,
+    {
+      params: {
+        _t: Date.now(),
+      },
+    },
+  );
   return response.data;
 };
 
