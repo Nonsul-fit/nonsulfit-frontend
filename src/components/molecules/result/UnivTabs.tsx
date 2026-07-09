@@ -1,27 +1,28 @@
 import TagChip from "../../atoms/TagChip";
-
-interface TabItem {
-  id: string;
-  tag: string;
-  university: string;
-  campus: string;
-}
+import type { RecommendedProgramItem } from "../../../types/reportPayloadV2";
 
 interface UnivTabsProps {
-  list: TabItem[];
+  list: RecommendedProgramItem[];
   activeIdx: number;
   onSelect: (idx: number) => void;
 }
 
+const getProgramMeta = (program: RecommendedProgramItem) =>
+  (program.metadata ?? {}) as {
+    campus?: string;
+    tag?: string;
+  };
+
 const UnivTabs = ({ list, activeIdx, onSelect }: UnivTabsProps) => {
   return (
     <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-      {list.map((univ, idx) => {
+      {list.map((program, idx) => {
         const isActive = activeIdx === idx;
+        const metadata = getProgramMeta(program);
 
         return (
           <button
-            key={univ.id}
+            key={program.programId}
             type="button"
             onClick={() => onSelect(idx)}
             className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between h-28 relative overflow-hidden group select-none ${
@@ -31,9 +32,8 @@ const UnivTabs = ({ list, activeIdx, onSelect }: UnivTabsProps) => {
             }`}
           >
             <div className="flex items-center">
-              <TagChip text={univ.tag} />
+              <TagChip text={metadata.tag ?? "추천"} />
             </div>
-            {/* 2. 대학교 이름 및 3. 캠퍼스 정보 */}
             <div className="mt-2">
               <h3
                 className={`text-medium font-black transition-colors leading-tight ${
@@ -42,14 +42,14 @@ const UnivTabs = ({ list, activeIdx, onSelect }: UnivTabsProps) => {
                     : "text-gray-800 group-hover:text-gray-900"
                 }`}
               >
-                {univ.university}
+                {program.universityName}
               </h3>
               <p
                 className={`text-[12px] font-medium  mt-0.3 ${
                   isActive ? "text-gray-200" : "text-gray-400"
                 }`}
               >
-                {univ.campus}캠퍼스
+                {metadata.campus ?? program.departmentName}
               </p>
             </div>
           </button>

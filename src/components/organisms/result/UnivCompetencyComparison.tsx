@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Legend,
   PolarAngleAxis,
@@ -9,21 +9,59 @@ import {
   Tooltip,
 } from "recharts";
 import Card from "../../atoms/Card";
+import type { RecommendedProgramItem } from "../../../types/reportPayloadV2";
 
 interface UnivCompetencyComparisonProps {
-  currentUniversity: any;
-  currentUniversityList?: any[];
+  currentUniversity: RecommendedProgramItem | null;
+  currentUniversityList?: RecommendedProgramItem[];
 }
+
+interface ResultProgramMetadata {
+  examDateText?: string;
+  competencyScores?: Partial<Record<CompetencyKey, number>>;
+}
+
+interface LegacySummary {
+  examDateText?: string;
+}
+
+interface RadarMetric {
+  subject: string;
+  score?: number;
+  avgScore?: number;
+}
+
+type CompetencyKey =
+  | "reading"
+  | "contentComprehension"
+  | "understanding"
+  | "structure"
+  | "express";
 
 const UnivCompetencyComparison = ({
   currentUniversity,
   currentUniversityList = [],
 }: UnivCompetencyComparisonProps) => {
-  if (!currentUniversity) return null;
+  const metadata = (currentUniversity?.metadata ?? {}) as ResultProgramMetadata;
+  const legacyProgram = currentUniversity as
+    | (RecommendedProgramItem & {
+        summary?: LegacySummary;
+        radarChartData?: RadarMetric[];
+      })
+    | null;
+  const summary = legacyProgram?.summary ?? {};
+  const competencyScores = metadata.competencyScores ?? {};
+  const radarChartData =
+    legacyProgram?.radarChartData ??
+    [
+      { subject: "독해력", score: competencyScores.reading },
+      { subject: "내용이해력", score: competencyScores.contentComprehension },
+      { subject: "문제이해력", score: competencyScores.understanding },
+      { subject: "구성력", score: competencyScores.structure },
+      { subject: "표현력", score: competencyScores.express },
+    ];
 
-  const { radarChartData = [], summary = {} } = currentUniversity;
-
-  const customChartData = radarChartData.map((item: any, idx: number) => {
+  const customChartData = radarChartData.map((item, idx: number) => {
     const userScore = item.score || 0;
     // 기존 합격 평균선 계산식 안전하게 유지
     const avgScore =
@@ -48,7 +86,8 @@ const UnivCompetencyComparison = ({
   };
 
   // 💡 포장된 데이터의 examDateText 반영
-  const activeExam = parseDateText(summary.examDateText || "");
+  const examDateText = metadata.examDateText ?? summary.examDateText ?? "";
+  const activeExam = useMemo(() => parseDateText(examDateText), [examDateText]);
 
   const [currentDate, setCurrentDate] = useState(() => {
     if (activeExam) {
@@ -62,9 +101,11 @@ const UnivCompetencyComparison = ({
 
   useEffect(() => {
     if (activeExam) {
-      setCurrentDate(new Date(2026, activeExam.month, 1));
+      queueMicrotask(() => {
+        setCurrentDate(new Date(2026, activeExam.month, 1));
+      });
     }
-  }, [currentUniversity.id, summary.examDateText]);
+  }, [activeExam, currentUniversity?.programId]);
 
   const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
   const totalDaysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -79,6 +120,8 @@ const UnivCompetencyComparison = ({
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
   const handleNextMonth = () =>
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+
+  if (!currentUniversity) return null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
@@ -150,7 +193,7 @@ const UnivCompetencyComparison = ({
 
           <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3 w-full">
             {/* 🎯 중복 변수명(item, idx) 대신 metric, index로 분리 및 any 타입 추가 완료! */}
-            {scoreMetrics.map((metric: any, index: number) => (
+            {scoreMetrics.map((metric, index: number) => (
               <div
                 key={index}
                 className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col justify-between items-start text-left"
@@ -191,7 +234,7 @@ const UnivCompetencyComparison = ({
             논술 일정
           </span>
           <div className="text-[11px] text-primary font-black tracking-tight bg-blue-50 px-3 py-2 rounded-xl break-keep leading-relaxed text-left w-full">
-            {summary.examDateText || "시험 일정 정보 없음"}
+            {metadata.examDateText || summary.examDateText || "시험 일정 정보 없음"}
           </div>
         </div>
 
@@ -239,13 +282,14 @@ const UnivCompetencyComparison = ({
               const overlappingUniversities = currentUniversityList.filter(
                 (univ) => {
                   const targetDate = parseDateText(
-                    univ.summary?.examDateText || "",
+                    ((univ.metadata ?? {}) as ResultProgramMetadata)
+                      .examDateText ?? "",
                   );
                   return (
                     targetDate &&
                     targetDate.month === currentMonth &&
                     targetDate.day === day &&
-                    univ.id !== currentUniversity.id
+                    univ.programId !== currentUniversity.programId
                   );
                 },
               );
@@ -271,8 +315,8 @@ const UnivCompetencyComparison = ({
                   <div className="flex gap-0.5 justify-center h-1.5 w-full items-center mb-0.5">
                     {overlappingUniversities.map((univ) => (
                       <span
-                        key={univ.id}
-                        title={univ.university}
+                        key={univ.programId}
+                        title={univ.universityName}
                         className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"
                       />
                     ))}

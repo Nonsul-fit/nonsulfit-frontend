@@ -23,7 +23,7 @@ const Result = () => {
     ? Number(studentInfo.essayCount.replace("개", ""))
     : 4;
 
-  const { universityList, isLoading } = useNonsulResult(
+  const { recommendedPrograms, isLoading } = useNonsulResult(
     id,
     filter,
     selectedLimit,
@@ -34,7 +34,8 @@ const Result = () => {
     setActiveIdx(0);
   };
 
-  const currentUniversity = universityList[activeIdx] || universityList[0];
+  const currentProgram =
+    recommendedPrograms[activeIdx] || recommendedPrograms[0] || null;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16 relative">
@@ -50,18 +51,18 @@ const Result = () => {
             리포트 데이터를 불러오는 중...
           </p>
         </div>
-      ) : universityList.length > 0 ? (
+      ) : recommendedPrograms.length > 0 ? (
         <>
           <UnivTabs
-            list={universityList}
+            list={recommendedPrograms}
             activeIdx={activeIdx}
             onSelect={setActiveIdx}
           />
-          <UnivDetailSummary currentUniversity={currentUniversity} />
-          <EvaluationReport currentUniversity={currentUniversity} />
+          <UnivDetailSummary currentProgram={currentProgram} />
+          <EvaluationReport currentUniversity={currentProgram} />
           <UnivCompetencyComparison
-            currentUniversity={currentUniversity}
-            currentUniversityList={universityList}
+            currentUniversity={currentProgram}
+            currentUniversityList={recommendedPrograms}
           />
 
           <div className="flex justify-between items-center pt-4 w-full">

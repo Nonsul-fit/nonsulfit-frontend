@@ -1,33 +1,70 @@
 import Card from "../../atoms/Card";
+import type { RecommendedProgramItem } from "../../../types/reportPayloadV2";
 
 interface EvaluationReportProps {
-  currentUniversity: any;
+  currentUniversity: RecommendedProgramItem | null;
+}
+
+interface ResultProgramMetadata {
+  comment?: string;
+  csatRequirement?: string;
+  competitionRateLatest?: number;
+  strategy?: string;
+}
+
+interface LegacySummary {
+  myTotalScore?: number;
+  csatRequirement?: string;
+  latestCompetitionRate?: number;
+  suitabilityScore?: number;
+}
+
+interface LegacyExplanations {
+  selectionReason?: string;
+  essayFeedback?: string;
+  entranceStrategy?: string;
+  departmentRecommendation?: string;
 }
 
 const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
   if (!currentUniversity) return null;
 
-  const { summary, explanations } = currentUniversity;
+  const metadata = (currentUniversity.metadata ?? {}) as ResultProgramMetadata;
+  const legacyProgram = currentUniversity as RecommendedProgramItem & {
+    summary?: LegacySummary;
+    explanations?: LegacyExplanations;
+  };
+  const summary = legacyProgram.summary ?? {};
+  const explanations = legacyProgram.explanations ?? {};
+  const rationale =
+    currentUniversity.rationale ?? explanations?.selectionReason;
+  const strategy = metadata.strategy ?? explanations?.entranceStrategy;
+  const departmentName =
+    currentUniversity.departmentName ?? explanations?.departmentRecommendation;
 
   const metrics = [
     {
       label: "나의 총점",
-      value: `${summary?.myTotalScore ?? 0}점`,
+      value: `${currentUniversity.finalScore ?? summary?.myTotalScore ?? 0}점`,
       color: "text-gray-800",
     },
     {
       label: "수능최저 여부",
-      value: summary?.csatRequirement?.includes("없음") ? "X" : "O",
+      value: (metadata.csatRequirement ?? summary?.csatRequirement)?.includes(
+        "없음",
+      )
+        ? "X"
+        : "O",
       color: "text-gray-800",
     },
     {
       label: "경쟁률",
-      value: `${summary?.latestCompetitionRate ?? 0} : 1`,
+      value: `${metadata.competitionRateLatest ?? summary?.latestCompetitionRate ?? 0} : 1`,
       color: "text-gray-800",
     },
     {
       label: "적합도 지표",
-      value: `${summary?.suitabilityScore ?? 0}점`,
+      value: `${currentUniversity.finalScore ?? summary?.suitabilityScore ?? 0}점`,
       color: "text-gray-800",
     },
   ];
@@ -50,7 +87,7 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               대학교 선정 이유
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations?.selectionReason || "선정 이유 정보가 없습니다."}
+              {rationale || "선정 이유 정보가 없습니다."}
             </div>
           </section>
 
@@ -61,7 +98,9 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               총평
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations?.essayFeedback || "첨삭 총평 정보가 없습니다."}
+              {metadata.comment ||
+                explanations?.essayFeedback ||
+                "첨삭 총평 정보가 없습니다."}
             </div>
           </section>
 
@@ -72,7 +111,7 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               입시 전략
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations?.entranceStrategy || "입시 전략 정보가 없습니다."}
+              {strategy || "입시 전략 정보가 없습니다."}
             </div>
           </section>
 
@@ -82,8 +121,7 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               <span className="w-1.5 h-1.5 bg-primary rounded-full" /> 학과 추천
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {explanations?.departmentRecommendation ||
-                "추천 학과 정보가 없습니다."}
+              {departmentName || "추천 학과 정보가 없습니다."}
             </div>
           </section>
         </div>

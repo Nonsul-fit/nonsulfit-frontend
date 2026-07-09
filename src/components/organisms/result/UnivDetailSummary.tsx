@@ -1,22 +1,31 @@
 import Card from "../../atoms/Card";
+import type { RecommendedProgramItem } from "../../../types/reportPayloadV2";
 
 interface UnivDetailSummaryProps {
-  currentUniversity: any;
+  currentProgram: RecommendedProgramItem | null;
 }
 
-const UnivDetailSummary = ({ currentUniversity }: UnivDetailSummaryProps) => {
-  if (!currentUniversity) return null;
+const getProgramMeta = (program: RecommendedProgramItem) =>
+  (program.metadata ?? {}) as {
+    campus?: string;
+    tag?: string;
+    comment?: string;
+    examDateText?: string;
+    csatRequirement?: string;
+    essayRatio?: number;
+    schoolRecordRatio?: number;
+  };
 
-  const {
-    university,
-    campus,
-    tag,
-    summary = {},
-    explanations = {},
-  } = currentUniversity;
+const UnivDetailSummary = ({ currentProgram }: UnivDetailSummaryProps) => {
+  if (!currentProgram) return null;
 
-  const nonsulRatio = Number(summary.essayRatio) || 100;
-  const naesinRatio = Number(summary.naesinRatio) || 0;
+  const metadata = getProgramMeta(currentProgram);
+  const universityName = currentProgram.universityName;
+  const campus = metadata.campus ?? "본교";
+  const tag = metadata.tag ?? "추천";
+
+  const nonsulRatio = Number(metadata.essayRatio) || 100;
+  const naesinRatio = Number(metadata.schoolRecordRatio) || 0;
 
   const strokeDasharray = 251.2;
   const strokeDashoffset =
@@ -31,14 +40,14 @@ const UnivDetailSummary = ({ currentUniversity }: UnivDetailSummaryProps) => {
       <div className="flex flex-col justify-between space-y-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-[#475569] rounded-xl flex items-center justify-center text-white text-xl font-black shadow-inner">
-            {university ? university[0] : "미"}
+            {universityName ? universityName[0] : "미"}
           </div>
           <div>
             <h2 className="text-xl font-black text-gray-900 tracking-tight">
-              {university}
+              {universityName}
             </h2>
             <p className="text-xs text-gray-400 font-medium mt-0.5">
-              {campus}캠퍼스 · {tag || "추천"} 지원권
+              {campus} · {tag} 지원권
             </p>
           </div>
         </div>
@@ -53,7 +62,9 @@ const UnivDetailSummary = ({ currentUniversity }: UnivDetailSummaryProps) => {
           <div className="flex items-center min-h-[52px] w-full">
             <p className="text-medium font-bold text-gray-800 leading-relaxed break-keep text-left w-full">
               "{" "}
-              {explanations.comment || "AI 분석 리포트 생성이 완료되었습니다."}{" "}
+              {metadata.comment ||
+                currentProgram.rationale ||
+                "AI 분석 리포트 생성이 완료되었습니다."}{" "}
               "
             </p>
           </div>
@@ -67,18 +78,15 @@ const UnivDetailSummary = ({ currentUniversity }: UnivDetailSummaryProps) => {
       >
         {[
           { label: "위치", value: `${campus}캠퍼스 권역` },
-          { label: "시험일", value: summary.examDateText || "일정 참조" },
+          { label: "시험일", value: metadata.examDateText || "일정 참조" },
           {
             label: "문제유형",
 
-            value:
-              summary.difficultyCode === "HIGHEST"
-                ? "다면사고형 / 영어제시문 복합"
-                : "독해 및 요약형 자료분석",
+            value: "독해 및 요약형 자료분석",
           },
           {
             label: "최저",
-            value: summary.csatRequirement || "수능최저 학력기준 없음",
+            value: metadata.csatRequirement || "수능최저 학력기준 없음",
           },
         ].map((item, idx) => (
           <div key={idx} className="flex items-center gap-4">
