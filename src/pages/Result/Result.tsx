@@ -4,10 +4,13 @@ import type { FilterType } from "../../components/molecules/result/ResultHeader"
 import ResultHeader from "../../components/molecules/result/ResultHeader";
 import UnivTabs from "../../components/molecules/result/UnivTabs";
 import EvaluationReport from "../../components/organisms/result/EvaluationReport";
+import CaseStatisticsSummaryPanel from "../../components/organisms/result/CaseStatisticsSummaryPanel";
 import UnivCompetencyComparison from "../../components/organisms/result/UnivCompetencyComparison";
 import UnivDetailSummary from "../../components/organisms/result/UnivDetailSummary";
 import NextActionsPanel from "../../components/organisms/result/NextActionsPanel";
+import PatternSummaryPanel from "../../components/organisms/result/PatternSummaryPanel";
 import RiskSummaryPanel from "../../components/organisms/result/RiskSummaryPanel";
+import TierSummaryPanel from "../../components/organisms/result/TierSummaryPanel";
 import WarningsPanel from "../../components/organisms/result/WarningsPanel";
 import { useNonsulResult } from "../../hooks/useNonsulResult";
 import ChatBtn from "../../components/organisms/ChatBtn";
@@ -70,7 +73,23 @@ const Result = () => {
             onSelect={setActiveIdx}
           />
           <UnivDetailSummary currentProgram={currentProgram} />
-          <EvaluationReport currentUniversity={currentProgram} />
+          <EvaluationReport
+            currentUniversity={currentProgram}
+            consultantSummary={generatedReportV2?.consultantSummary}
+          />
+          {generatedReportV2 && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <TierSummaryPanel tierSummary={generatedReportV2.tierSummary} />
+              <PatternSummaryPanel
+                patternSummary={generatedReportV2.patternSummary}
+              />
+              <CaseStatisticsSummaryPanel
+                caseStatisticsSummary={
+                  generatedReportV2.caseStatisticsSummary
+                }
+              />
+            </div>
+          )}
           <UnivCompetencyComparison
             currentUniversity={currentProgram}
             currentUniversityList={recommendedPrograms}

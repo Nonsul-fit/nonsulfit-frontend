@@ -60,7 +60,26 @@ const isReportPayloadV2 = (payload: unknown): payload is ReportPayloadV2 =>
 
 const normalizeReportPayloadV2 = (payload: ReportPayloadV2): ReportPayloadV2 => ({
   ...payload,
+  studentSummary: payload.studentSummary ?? {},
+  recommendationSummary: payload.recommendationSummary ?? {},
   recommendedPrograms: payload.recommendedPrograms ?? [],
+  tierSummary: {
+    ...payload.tierSummary,
+    tiers: payload.tierSummary?.tiers ?? [],
+  },
+  consultantSummary: {
+    ...payload.consultantSummary,
+    keyInsights: payload.consultantSummary?.keyInsights ?? [],
+    strategyNotes: payload.consultantSummary?.strategyNotes ?? [],
+  },
+  patternSummary: {
+    ...payload.patternSummary,
+    matchedPatterns: payload.patternSummary?.matchedPatterns ?? [],
+  },
+  caseStatisticsSummary: {
+    ...payload.caseStatisticsSummary,
+    statistics: payload.caseStatisticsSummary?.statistics ?? [],
+  },
   warnings: payload.warnings ?? [],
   nextActions: payload.nextActions ?? [],
   riskSummary: {
@@ -73,6 +92,7 @@ const normalizeReportPayloadV2 = (payload: ReportPayloadV2): ReportPayloadV2 => 
     match: normalizeBucketStrategy(payload.portfolioStrategy?.match),
     reach: normalizeBucketStrategy(payload.portfolioStrategy?.reach),
   },
+  metadata: payload.metadata ?? {},
 });
 
 const normalizeBucketStrategy = (

@@ -1,8 +1,12 @@
 import Card from "../../atoms/Card";
-import type { RecommendedProgramItem } from "../../../types/reportPayloadV2";
+import type {
+  ConsultantSummarySection,
+  RecommendedProgramItem,
+} from "../../../types/reportPayloadV2";
 
 interface EvaluationReportProps {
   currentUniversity: RecommendedProgramItem | null;
+  consultantSummary?: ConsultantSummarySection | null;
 }
 
 interface ResultProgramMetadata {
@@ -19,28 +23,26 @@ interface LegacySummary {
   suitabilityScore?: number;
 }
 
-interface LegacyExplanations {
-  selectionReason?: string;
-  essayFeedback?: string;
-  entranceStrategy?: string;
-  departmentRecommendation?: string;
-}
-
-const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
+const EvaluationReport = ({
+  currentUniversity,
+  consultantSummary,
+}: EvaluationReportProps) => {
   if (!currentUniversity) return null;
 
   const metadata = (currentUniversity.metadata ?? {}) as ResultProgramMetadata;
   const legacyProgram = currentUniversity as RecommendedProgramItem & {
     summary?: LegacySummary;
-    explanations?: LegacyExplanations;
   };
   const summary = legacyProgram.summary ?? {};
-  const explanations = legacyProgram.explanations ?? {};
-  const rationale =
-    currentUniversity.rationale ?? explanations?.selectionReason;
-  const strategy = metadata.strategy ?? explanations?.entranceStrategy;
-  const departmentName =
-    currentUniversity.departmentName ?? explanations?.departmentRecommendation;
+  const keyInsights = consultantSummary?.keyInsights ?? [];
+  const strategyNotes = consultantSummary?.strategyNotes ?? [];
+  const overallComment =
+    consultantSummary?.overallComment ?? currentUniversity.rationale;
+  const insightText =
+    keyInsights.length > 0 ? keyInsights.join(" ") : overallComment;
+  const strategyText =
+    strategyNotes.length > 0 ? strategyNotes.join(" ") : metadata.strategy;
+  const departmentName = currentUniversity.departmentName;
 
   const metrics = [
     {
@@ -87,7 +89,7 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               대학교 선정 이유
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {rationale || "선정 이유 정보가 없습니다."}
+              {overallComment || "선정 이유 정보가 없습니다."}
             </div>
           </section>
 
@@ -98,9 +100,7 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               총평
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {metadata.comment ||
-                explanations?.essayFeedback ||
-                "첨삭 총평 정보가 없습니다."}
+              {insightText || "첨삭 총평 정보가 없습니다."}
             </div>
           </section>
 
@@ -111,7 +111,7 @@ const EvaluationReport = ({ currentUniversity }: EvaluationReportProps) => {
               입시 전략
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {strategy || "입시 전략 정보가 없습니다."}
+              {strategyText || "입시 전략 정보가 없습니다."}
             </div>
           </section>
 
