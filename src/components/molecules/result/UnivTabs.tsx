@@ -10,7 +10,6 @@ interface UnivTabsProps {
 const getProgramMeta = (program: RecommendedProgramItem) =>
   (program.metadata ?? {}) as {
     campus?: string;
-    tag?: string;
   };
 
 const UnivTabs = ({ list, activeIdx, onSelect }: UnivTabsProps) => {
@@ -31,8 +30,16 @@ const UnivTabs = ({ list, activeIdx, onSelect }: UnivTabsProps) => {
                 : "bg-white border-gray-200  hover:border-gray-300 hover:shadow-sm"
             }`}
           >
-            <div className="flex items-center">
-              <TagChip text={metadata.tag ?? "추천"} />
+            <div className="flex items-center gap-1.5 min-w-0">
+              <TagChip category={program.category} />
+              {program.sectionFallback && (
+                <span
+                  title={program.fallbackReason}
+                  className="text-[11px] font-black px-2 py-0.5 rounded-md border border-violet-200 bg-violet-50 text-violet-700 tracking-tight"
+                >
+                  보정
+                </span>
+              )}
             </div>
             <div className="mt-2">
               <h3

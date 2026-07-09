@@ -6,6 +6,9 @@ import UnivTabs from "../../components/molecules/result/UnivTabs";
 import EvaluationReport from "../../components/organisms/result/EvaluationReport";
 import UnivCompetencyComparison from "../../components/organisms/result/UnivCompetencyComparison";
 import UnivDetailSummary from "../../components/organisms/result/UnivDetailSummary";
+import NextActionsPanel from "../../components/organisms/result/NextActionsPanel";
+import RiskSummaryPanel from "../../components/organisms/result/RiskSummaryPanel";
+import WarningsPanel from "../../components/organisms/result/WarningsPanel";
 import { useNonsulResult } from "../../hooks/useNonsulResult";
 import ChatBtn from "../../components/organisms/ChatBtn";
 import { useFormContext } from "../../context/FormContext"; // 🔑 1. 컨텍스트 임포트 추가
@@ -23,7 +26,7 @@ const Result = () => {
     ? Number(studentInfo.essayCount.replace("개", ""))
     : 4;
 
-  const { recommendedPrograms, isLoading } = useNonsulResult(
+  const { recommendedPrograms, generatedReportV2, isLoading } = useNonsulResult(
     id,
     filter,
     selectedLimit,
@@ -43,6 +46,14 @@ const Result = () => {
         currentFilter={filter}
         onFilterChange={handleFilterChange}
       />
+
+      {!isLoading && generatedReportV2 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <WarningsPanel warnings={generatedReportV2.warnings} />
+          <RiskSummaryPanel riskSummary={generatedReportV2.riskSummary} />
+          <NextActionsPanel nextActions={generatedReportV2.nextActions} />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl border border-dashed border-gray-200">

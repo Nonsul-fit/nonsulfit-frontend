@@ -52,6 +52,15 @@ const UnivDetailSummary = ({ currentProgram }: UnivDetailSummaryProps) => {
           </div>
         </div>
 
+        {currentProgram.sectionFallback && (
+          <div className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-[12px] font-bold text-violet-800 leading-relaxed">
+            <span className="mr-2 inline-flex rounded-md border border-violet-200 bg-white px-2 py-0.5 text-[11px] font-black text-violet-700">
+              보정
+            </span>
+            {currentProgram.fallbackReason || "일부 데이터가 보정되었습니다."}
+          </div>
+        )}
+
         <Card
           variant="slate"
           className="p-5 rounded-2xl flex-1 flex flex-col justify-center"

@@ -61,6 +61,13 @@ const isReportPayloadV2 = (payload: unknown): payload is ReportPayloadV2 =>
 const normalizeReportPayloadV2 = (payload: ReportPayloadV2): ReportPayloadV2 => ({
   ...payload,
   recommendedPrograms: payload.recommendedPrograms ?? [],
+  warnings: payload.warnings ?? [],
+  nextActions: payload.nextActions ?? [],
+  riskSummary: {
+    ...payload.riskSummary,
+    flaggedProgramIds: payload.riskSummary?.flaggedProgramIds ?? [],
+    reasons: payload.riskSummary?.reasons ?? [],
+  },
   portfolioStrategy: {
     safety: normalizeBucketStrategy(payload.portfolioStrategy?.safety),
     match: normalizeBucketStrategy(payload.portfolioStrategy?.match),
