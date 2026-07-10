@@ -2,11 +2,13 @@ import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAnalysisContext } from "../../context/AnalysisContext";
 import { useAnalysisPolling } from "../../hooks/useAnalysisPolling";
+import { buildResultRoute } from "../../router/resultRoutes";
 
 const LoadingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { analysisRunId, setAnalysisRunId } = useAnalysisContext();
+  const { analysisRunId, setAnalysisRunId, clearAnalysisRunId } =
+    useAnalysisContext();
 
   const routeAnalysisRunId = useMemo(() => {
     const state = location.state as { analysisRunId?: unknown } | null;
@@ -24,15 +26,21 @@ const LoadingPage = () => {
 
   useEffect(() => {
     if (polling.status === "COMPLETED" && polling.reportId) {
-      navigate(`/result/${polling.reportId}`, {
+      clearAnalysisRunId();
+      navigate(buildResultRoute(polling.reportId), {
         state: {
           reportId: polling.reportId,
         },
       });
     }
-  }, [navigate, polling.reportId, polling.status]);
+  }, [clearAnalysisRunId, navigate, polling.reportId, polling.status]);
 
-  const errorMessage = getErrorMessage(currentAnalysisRunId, polling.error);
+  const errorMessage = getErrorMessage(
+    currentAnalysisRunId,
+    polling.status,
+    polling.reportId,
+    polling.error,
+  );
 
   if (errorMessage) {
     return (
@@ -64,10 +72,16 @@ const LoadingPage = () => {
 
 const getErrorMessage = (
   analysisRunId: string | null,
+  status: ReturnType<typeof useAnalysisPolling>["status"],
+  reportId: string | null,
   error: ReturnType<typeof useAnalysisPolling>["error"],
 ): string => {
   if (!analysisRunId) {
     return "분석 실행 ID가 없어 리포트 생성 상태를 확인할 수 없습니다.";
+  }
+
+  if (status === "COMPLETED" && !reportId) {
+    return "분석은 완료되었지만 리포트 ID를 확인할 수 없습니다.";
   }
 
   if (!error) return "";
