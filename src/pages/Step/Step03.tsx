@@ -5,19 +5,19 @@ import ScoreInputBox from "../../components/molecules/step/ScoreInputBox";
 import StepHeader from "../../components/molecules/step/StepHeader";
 import StepNavigation from "../../components/molecules/step/StepNavigation";
 import FormCard from "../../components/organisms/FormCard";
+import { submitAnalysisInput } from "../../api/analysis";
+import { mapFormToAnalysisInput } from "../../adapters/analysisInputMapper";
 import { useAnalysisContext } from "../../context/AnalysisContext";
 import { useFormContext } from "../../context/FormContext";
 import { useFormValidation } from "../../hooks/useFormValidation";
 import type { MockExamSlot } from "../../types/admission";
-import { saveInputData } from "../../types/nonsulService";
 
 const Step03 = () => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const navigate = useNavigate();
   const { validateRequired } = useFormValidation();
   const { setAnalysisRunId } = useAnalysisContext();
-  const { studentInfo, essayInfo, academicInfo, setAcademicInfo } =
-    useFormContext();
+  const { studentInfo, academicInfo, setAcademicInfo } = useFormContext();
 
   const [serverError, setServerError] = useState<string>("");
 
@@ -76,64 +76,19 @@ const Step03 = () => {
 
     if (!isValid) return false;
 
-    const convertExamMonth = (type: string) => {
-      if (type === "3모") return 3;
-      if (type === "6모") return 6;
-      if (type === "9모") return 9;
-      if (type === "수능") return 11;
-      return 11;
-    };
-
-    const formattedPayload = {
-      student: {
-        grade: "3",
-        repeatYear: studentInfo.status === "재학생" ? 0 : 1,
-        academic: studentInfo.track,
-        desiredDepartment: studentInfo.major || "",
-        desiredArea: studentInfo.targetRegion || "전국",
-
-        essayCount: studentInfo.essayCount
-          ? studentInfo.essayCount.replace(/[^0-9]/g, "")
-          : "6",
+    const payload = mapFormToAnalysisInput({
+      studentInfo: {
+        ...studentInfo,
+        applicationCount: studentInfo.essayCount,
       },
-
-      essayCompetency: {
-        reading: Number(essayInfo.reading) || 0,
-        contentComprehension: Number(essayInfo.content_understanding) || 0,
-        structure: Number(essayInfo.structure) || 0,
-        express: Number(essayInfo.expression) || 0,
-        understanding: Number(essayInfo.prompt_understanding) || 0,
-        chartPreference: Number(essayInfo.chart_score) || 1,
-        englishPreference: Number(essayInfo.english_passage_score) || 1,
-        mathPreference: Number(essayInfo.math_question_score) || 1,
-        comment: essayInfo.feedback || "",
+      academicInfo: {
+        ...academicInfo,
+        mockExams: filledExams,
       },
+    });
 
-      schoolGrade: {
-        majorGrade: Number(academicInfo.gpaCore) || 0,
-        allGrade: Number(academicInfo.gpaAll) || 0,
-      },
-
-      testGrades: filledExams.map((exam: MockExamSlot) => ({
-        year: Number(exam.year) || 2026,
-        month: convertExamMonth(exam.examType),
-        koreanGrade: Number(exam.korean?.grade) || 0,
-        mathGrade: Number(exam.math?.grade) || 0,
-        englishGrade: Number(exam.english) || 0,
-        inquiry1Grade: Number(exam.inquiry1) || 0,
-        inquiry2Grade: Number(exam.inquiry2) || 0,
-      })),
-    };
-
-    saveInputData(formattedPayload)
+    submitAnalysisInput(payload)
       .then((data) => {
-        if (!data.analysisRunId) {
-          setServerError(
-            "⚠️ 분석 실행 ID를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
-          );
-          return;
-        }
-
         setAnalysisRunId(data.analysisRunId);
         navigate("/loading", { state: { analysisRunId: data.analysisRunId } });
       })

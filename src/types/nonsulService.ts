@@ -1,4 +1,6 @@
 import api from "../api/axios";
+import { submitAnalysisInput } from "../api/analysis";
+import type { AnalysisInputPayload } from "../contracts/analysisInput";
 
 export interface UniversityReport {
   id: number;
@@ -53,14 +55,8 @@ export const getInputData = async () => {
 };
 
 export const saveInputData = async (
-  inputData: any,
-): Promise<SaveInputDataResponse> => {
-  const response = await api.put<SaveInputDataResponse>(
-    "/nonsulfit/input",
-    inputData,
-  );
-  return response.data;
-};
+  inputData: AnalysisInputPayload,
+): Promise<SaveInputDataResponse> => submitAnalysisInput(inputData);
 
 export const checkAnalysisStatus = async (
   analysisRunId: string,

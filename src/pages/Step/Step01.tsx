@@ -58,7 +58,7 @@ const Step01 = () => {
         <SelectionCard
           title="계열 선택"
           icon="✍️"
-          options={["인문사회 계열", "자연 계열", "예체능 계열"]}
+          options={["인문사회 계열", "자연 계열", "통합"]}
           value={studentInfo.track}
           onChange={(val) => handleUpdate("track", val)}
         />

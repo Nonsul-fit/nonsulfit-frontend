@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
+import { ANALYSIS_RUN_ID_STORAGE_KEY } from "../api/analysis";
 
 interface AnalysisContextValue {
   analysisRunId: string | null;
@@ -8,12 +9,20 @@ interface AnalysisContextValue {
 
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);
 
+const restoreAnalysisRunId = (): string | null => {
+  if (typeof sessionStorage === "undefined") return null;
+
+  return sessionStorage.getItem(ANALYSIS_RUN_ID_STORAGE_KEY);
+};
+
 export const AnalysisProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [analysisRunId, setAnalysisRunId] = useState<string | null>(null);
+  const [analysisRunId, setAnalysisRunId] = useState<string | null>(
+    restoreAnalysisRunId,
+  );
 
   const value = useMemo(
     () => ({
