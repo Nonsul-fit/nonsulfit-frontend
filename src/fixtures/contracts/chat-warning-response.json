@@ -1,0 +1,8 @@
+{
+  "id": "assistant-warning-1",
+  "type": "ASSISTANT",
+  "message": "일부 리포트 맥락을 확인하지 못해 일반 기준으로 답변합니다.",
+  "createdAt": "invalid-date",
+  "status": "FALLBACK",
+  "warnings": ["report_snapshot_missing", "fallback_answer_used"]
+}

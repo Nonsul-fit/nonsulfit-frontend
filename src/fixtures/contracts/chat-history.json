@@ -1,0 +1,17 @@
+{
+  "chat": [
+    {
+      "id": 1,
+      "type": "USER",
+      "message": "이 리포트에서 가장 중요한 준비 포인트가 뭐야?",
+      "createdAt": "2026-07-10T04:30:00.000Z"
+    },
+    {
+      "id": "assistant-1",
+      "type": "ASSISTANT",
+      "message": "우선 지원군별 논술 유형 차이를 확인하는 것이 좋습니다.",
+      "createdAt": "2026-07-10T04:31:00.000Z",
+      "warnings": ["source_context_limited"]
+    }
+  ]
+}
