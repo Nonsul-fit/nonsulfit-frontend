@@ -1,6 +1,52 @@
 import { useEffect, useState } from "react";
 import { fetchReportDetail } from "../api/reports";
 import type { ReportMappingResult } from "../contracts/reportResponse";
+import type {
+  PortfolioStrategySection,
+  RecommendedProgramItem,
+} from "../types/reportPayloadV2";
+
+type NormalizedProgram = RecommendedProgramItem;
+type NormalizedPortfolio = PortfolioStrategySection;
+type DisplayBucketFilter = "stable" | "target" | "reach" | "all";
+type PortfolioBucketKey = "safety" | "match" | "reach";
+
+const portfolioBucketByDisplayBucket: Record<
+  Exclude<DisplayBucketFilter, "all">,
+  PortfolioBucketKey
+> = {
+  stable: "safety",
+  target: "match",
+  reach: "reach",
+};
+
+export function selectDisplayProgramsByBucket(
+  programs: NormalizedProgram[],
+  portfolio: NormalizedPortfolio,
+  bucket: DisplayBucketFilter,
+): NormalizedProgram[] {
+  if (
+    bucket !== "stable" &&
+    bucket !== "target" &&
+    bucket !== "reach" &&
+    bucket !== "all"
+  ) {
+    throw new Error("bucket must be stable, target, reach, or all");
+  }
+
+  if (bucket === "all") {
+    return programs.filter(() => true);
+  }
+
+  const portfolioBucket = portfolio[portfolioBucketByDisplayBucket[bucket]];
+  const portfolioProgramIds = new Set(portfolioBucket?.programIds ?? []);
+
+  if (portfolioProgramIds.size > 0) {
+    return programs.filter((program) => portfolioProgramIds.has(program.programId));
+  }
+
+  return programs.filter((program) => program.displayBucket === bucket);
+}
 
 export function useNonsulResult(reportId: string): {
   result: ReportMappingResult | null;

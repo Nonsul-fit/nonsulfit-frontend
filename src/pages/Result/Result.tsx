@@ -12,18 +12,12 @@ import PatternSummaryPanel from "../../components/organisms/result/PatternSummar
 import RiskSummaryPanel from "../../components/organisms/result/RiskSummaryPanel";
 import TierSummaryPanel from "../../components/organisms/result/TierSummaryPanel";
 import WarningsPanel from "../../components/organisms/result/WarningsPanel";
-import { useNonsulResult } from "../../hooks/useNonsulResult";
+import {
+  selectDisplayProgramsByBucket,
+  useNonsulResult,
+} from "../../hooks/useNonsulResult";
 import ChatBtn from "../../components/organisms/ChatBtn";
-import { useFormContext } from "../../context/FormContext"; // 🔑 1. 컨텍스트 임포트 추가
 import type { RecommendedProgramItem } from "../../types/reportPayloadV2";
-
-type PortfolioBucketKey = "safety" | "match" | "reach";
-
-const filterBucketKey: Record<FilterType, PortfolioBucketKey> = {
-  하향: "safety",
-  적정: "match",
-  상향: "reach",
-};
 
 const displayBucketByFilter: Record<FilterType, "stable" | "target" | "reach"> =
   {
@@ -39,33 +33,17 @@ const Result = () => {
   const [filter, setFilter] = useState<FilterType>("상향");
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
-  const { studentInfo } = useFormContext();
-
-  const selectedLimit = studentInfo?.essayCount
-    ? Number(studentInfo.essayCount.replace("개", ""))
-    : 4;
-
   const { result, isLoading, networkError } = useNonsulResult(reportId ?? "");
   const generatedReportV2 = result?.data ?? null;
   const recommendedPrograms = useMemo<RecommendedProgramItem[]>(() => {
     if (!generatedReportV2) return [];
 
-    const selectedBucket = generatedReportV2.portfolioStrategy[
-      filterBucketKey[filter]
-    ] ?? { programIds: [] };
-    const selectedProgramIds = new Set(selectedBucket.programIds);
-    const selectedPrograms =
-      selectedProgramIds.size > 0
-        ? generatedReportV2.recommendedPrograms.filter((program) =>
-            selectedProgramIds.has(program.programId),
-          )
-        : generatedReportV2.recommendedPrograms.filter(
-            (program) =>
-              program.displayBucket === displayBucketByFilter[filter],
-          );
-
-    return selectedPrograms.slice(0, selectedLimit);
-  }, [filter, generatedReportV2, selectedLimit]);
+    return selectDisplayProgramsByBucket(
+      generatedReportV2.recommendedPrograms,
+      generatedReportV2.portfolioStrategy,
+      displayBucketByFilter[filter],
+    );
+  }, [filter, generatedReportV2]);
 
   const handleFilterChange = (newFilter: FilterType) => {
     setFilter(newFilter);
