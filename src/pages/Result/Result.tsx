@@ -126,7 +126,7 @@ const Result = () => {
         </div>
       )}
 
-      <ChatBtn reportId={reportId} />
+      <ChatBtn reportId={reportId} reportSnapshot={generatedReportV2} />
     </div>
   );
 };

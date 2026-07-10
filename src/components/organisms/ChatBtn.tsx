@@ -1,38 +1,101 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
+import type { ReportPayloadV2, ReportWarning } from "../../types/reportPayloadV2";
 
 interface ChatMessage {
   id: number | string;
-  type: "USER" | "ASSISTANT";
-  message: string;
+  role: "USER" | "ASSISTANT" | "SYSTEM";
+  content: string;
 }
 
 interface ChatBtnProps {
   reportId: string | number | undefined;
+  reportSnapshot?: ReportPayloadV2 | null;
 }
 
-const ChatBtn = ({ reportId }: ChatBtnProps) => {
+const toRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+
+const normalizeRole = (value: unknown): ChatMessage["role"] => {
+  if (value === "USER" || value === "ASSISTANT" || value === "SYSTEM") {
+    return value;
+  }
+
+  if (value === "user") return "USER";
+  if (value === "assistant") return "ASSISTANT";
+  if (value === "system") return "SYSTEM";
+
+  return "ASSISTANT";
+};
+
+const normalizeMessage = (
+  message: unknown,
+  fallbackId: string | number,
+): ChatMessage | null => {
+  const record = toRecord(message);
+
+  if (!record) {
+    return null;
+  }
+
+  const content = record.content ?? record.message;
+
+  if (typeof content !== "string") {
+    return null;
+  }
+
+  return {
+    id:
+      typeof record.id === "string" || typeof record.id === "number"
+        ? record.id
+        : fallbackId,
+    role: normalizeRole(record.role ?? record.type),
+    content,
+  };
+};
+
+const normalizeMessages = (payload: unknown): ChatMessage[] => {
+  const record = toRecord(payload);
+  const rawMessages = Array.isArray(payload)
+    ? payload
+    : Array.isArray(record?.messages)
+      ? record.messages
+      : Array.isArray(record?.chat)
+        ? record.chat
+        : [];
+
+  return rawMessages
+    .map((message, index) => normalizeMessage(message, `message-${index}`))
+    .filter((message): message is ChatMessage => message !== null);
+};
+
+const normalizeWarnings = (payload: unknown): ReportWarning[] => {
+  const record = toRecord(payload);
+  return Array.isArray(record?.warnings)
+    ? (record.warnings as ReportWarning[])
+    : [];
+};
+
+const ChatBtn = ({ reportId, reportSnapshot }: ChatBtnProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [warnings, setWarnings] = useState<ReportWarning[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isBotResponding, setIsBotResponding] = useState(false);
 
   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  const getAccessToken = () => localStorage.getItem("accessToken");
-
   const fetchChatHistory = async () => {
     if (!reportId) return;
 
     setIsLoading(true);
     try {
-      const token = getAccessToken();
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${reportId}`,
-        { headers: { Authorization: `Bearer ${token}` } },
+      const response = await api.get(
+        `/reports/${encodeURIComponent(String(reportId))}/chat/messages`,
       );
-      setMessages(response.data.chat || []);
+      setMessages(normalizeMessages(response.data));
+      setWarnings(normalizeWarnings(response.data));
     } catch (error) {
       console.error("채팅 내역 로드 실패:", error);
     } finally {
@@ -54,42 +117,38 @@ const ChatBtn = ({ reportId }: ChatBtnProps) => {
 
     const tempUserChat: ChatMessage = {
       id: `user-${Date.now()}`,
-      type: "USER",
-      message: userMessage,
+      role: "USER",
+      content: userMessage,
     };
     setMessages((prev) => [...prev, tempUserChat]);
     setIsBotResponding(true);
 
     try {
-      const token = getAccessToken();
-
-      console.log("🧐 [ChatBtn 디버깅] 현재 백엔드로 보내는 정보:");
-      console.log("➡️ 전송할 토큰(Token):", token);
-      console.log(
-        "➡️ 리포트 ID(reportId):",
-        reportId,
+      const response = await api.post(
+        `/reports/${encodeURIComponent(String(reportId))}/chat/messages`,
+        {
+          role: "USER",
+          content: userMessage,
+          reportSnapshot,
+        },
       );
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/nonsulfit/chat/${reportId}`,
-        { message: userMessage },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const normalizedWarnings = normalizeWarnings(response.data);
+      const responseMessages = normalizeMessages(response.data);
+      const singleMessage = normalizeMessage(response.data, `bot-${Date.now()}`);
 
-      const botMessage: ChatMessage = {
-        id: response.data.id,
-        type: response.data.type,
-        message: response.data.message,
-      };
-
-      if (response.data.status || response.data.warnings) {
-        console.log("ℹ️ [백엔드 추가 시스템 정보]:", {
-          status: response.data.status,
-          warnings: response.data.warnings,
-        });
+      if (normalizedWarnings.length > 0) {
+        setWarnings(normalizedWarnings);
       }
 
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [
+        ...prev,
+        ...(responseMessages.length > 0
+          ? responseMessages
+          : singleMessage
+            ? [singleMessage]
+            : []),
+      ]);
     } catch (error: any) {
       console.error("❌ [ChatBtn 에러 발생] 백엔드가 반환한 진짜 에러:");
       if (error.response) {
@@ -103,8 +162,8 @@ const ChatBtn = ({ reportId }: ChatBtnProps) => {
         ...prev,
         {
           id: `error-${Date.now()}`,
-          type: "ASSISTANT",
-          message:
+          role: "ASSISTANT",
+          content:
             "죄송합니다. 메시지 전송 중 오류가 발생했습니다. 다시 시도해 주세요.",
         },
       ]);
@@ -151,20 +210,42 @@ const ChatBtn = ({ reportId }: ChatBtnProps) => {
             ) : (
               messages.map((msg, index) => (
                 <div
-                  key={msg.id || `${msg.type}-${index}`}
-                  className={`flex ${msg.type === "USER" ? "justify-end" : "justify-start"}`}
+                  key={msg.id || `${msg.role}-${index}`}
+                  className={`flex ${
+                    msg.role === "USER"
+                      ? "justify-end"
+                      : msg.role === "SYSTEM"
+                        ? "justify-center"
+                        : "justify-start"
+                  }`}
                 >
                   <div
                     className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm font-medium leading-relaxed ${
-                      msg.type === "USER"
+                      msg.role === "USER"
                         ? "bg-[#1d3573] text-white rounded-tr-none"
-                        : "bg-gray-100 text-gray-800 rounded-tl-none"
+                        : msg.role === "SYSTEM"
+                          ? "bg-amber-50 text-amber-800 border border-amber-100 rounded-xl text-xs"
+                          : "bg-gray-100 text-gray-800 rounded-tl-none"
                     }`}
                   >
-                    {msg.message}
+                    {msg.content}
                   </div>
                 </div>
               ))
+            )}
+
+            {warnings.length > 0 && (
+              <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-800">
+                <p className="font-black mb-1">채팅 참고 사항</p>
+                <ul className="space-y-1">
+                  {warnings.map((warning, index) => (
+                    <li key={`${warning.code}-${index}`}>
+                      {warning.warningTitle || warning.code}
+                      {warning.warningDetail ? ` · ${warning.warningDetail}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
 
             {isBotResponding && (
