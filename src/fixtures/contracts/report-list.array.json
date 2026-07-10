@@ -1,0 +1,10 @@
+[
+  {
+    "reportId": "report-1",
+    "publicId": 31,
+    "title": "첫 번째 분석",
+    "createdAt": "2026-07-10T04:30:00.000Z",
+    "updatedAt": "2026-07-10T05:30:00.000Z",
+    "status": "COMPLETED"
+  }
+]
