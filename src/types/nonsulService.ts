@@ -1,6 +1,9 @@
 import api from "../api/axios";
 import { submitAnalysisInput } from "../api/analysis";
+import { fetchReportDetail, fetchReportList } from "../api/reports";
 import type { AnalysisInputPayload } from "../contracts/analysisInput";
+import type { NormalizedReportList } from "../contracts/reportList";
+import type { ReportMappingResult } from "../contracts/reportResponse";
 
 export interface UniversityReport {
   id: number;
@@ -72,16 +75,9 @@ export const checkAnalysisStatus = async (
   return response.data;
 };
 
-export const getReports = async (): Promise<unknown> => {
-  const response = await api.get<unknown>("/reports");
-  return response.data;
-};
+export const getReports = async (): Promise<NormalizedReportList> =>
+  fetchReportList();
 
 export const getReportData = async (
-  reportId: string | number,
-): Promise<unknown> => {
-  const response = await api.get<unknown>(
-    `/reports/${encodeURIComponent(String(reportId))}`,
-  );
-  return response.data;
-};
+  reportId: string,
+): Promise<ReportMappingResult> => fetchReportDetail(reportId);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { FilterType } from "../../components/molecules/result/ResultHeader";
 import ResultHeader from "../../components/molecules/result/ResultHeader";
@@ -15,6 +15,22 @@ import WarningsPanel from "../../components/organisms/result/WarningsPanel";
 import { useNonsulResult } from "../../hooks/useNonsulResult";
 import ChatBtn from "../../components/organisms/ChatBtn";
 import { useFormContext } from "../../context/FormContext"; // 🔑 1. 컨텍스트 임포트 추가
+import type { RecommendedProgramItem } from "../../types/reportPayloadV2";
+
+type PortfolioBucketKey = "safety" | "match" | "reach";
+
+const filterBucketKey: Record<FilterType, PortfolioBucketKey> = {
+  하향: "safety",
+  적정: "match",
+  상향: "reach",
+};
+
+const displayBucketByFilter: Record<FilterType, "stable" | "target" | "reach"> =
+  {
+    하향: "stable",
+    적정: "target",
+    상향: "reach",
+  };
 
 const Result = () => {
   const navigate = useNavigate();
@@ -29,11 +45,27 @@ const Result = () => {
     ? Number(studentInfo.essayCount.replace("개", ""))
     : 4;
 
-  const { recommendedPrograms, generatedReportV2, isLoading } = useNonsulResult(
-    reportId,
-    filter,
-    selectedLimit,
-  );
+  const { result, isLoading, networkError } = useNonsulResult(reportId ?? "");
+  const generatedReportV2 = result?.data ?? null;
+  const recommendedPrograms = useMemo<RecommendedProgramItem[]>(() => {
+    if (!generatedReportV2) return [];
+
+    const selectedBucket = generatedReportV2.portfolioStrategy[
+      filterBucketKey[filter]
+    ] ?? { programIds: [] };
+    const selectedProgramIds = new Set(selectedBucket.programIds);
+    const selectedPrograms =
+      selectedProgramIds.size > 0
+        ? generatedReportV2.recommendedPrograms.filter((program) =>
+            selectedProgramIds.has(program.programId),
+          )
+        : generatedReportV2.recommendedPrograms.filter(
+            (program) =>
+              program.displayBucket === displayBucketByFilter[filter],
+          );
+
+    return selectedPrograms.slice(0, selectedLimit);
+  }, [filter, generatedReportV2, selectedLimit]);
 
   const handleFilterChange = (newFilter: FilterType) => {
     setFilter(newFilter);
@@ -58,7 +90,19 @@ const Result = () => {
         </div>
       )}
 
-      {isLoading ? (
+      {networkError ? (
+        <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100">
+          <p className="text-medium font-medium mb-4">
+            리포트 데이터를 불러오는 중 문제가 발생했습니다.
+          </p>
+          <button
+            onClick={() => navigate("/result")}
+            className="px-6 py-3 bg-primary text-white font-extrabold text-sm rounded-2xl shadow-md hover:opacity-90 transition-all"
+          >
+            분석 리스트 돌아가기
+          </button>
+        </div>
+      ) : isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl border border-dashed border-gray-200">
           <div className="w-8 h-8 border-4 border-gray-100 border-t-primary rounded-full animate-spin mb-4" />
           <p className="text-medium font-medium text-gray-500">

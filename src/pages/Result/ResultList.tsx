@@ -1,76 +1,29 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { fetchReportList } from "../../api/reports";
 import Card from "../../components/atoms/Card";
-import { getReports } from "../../types/nonsulService";
-
-interface ReportItem {
-  reportId: string | number;
-  title?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-const toRecord = (value: unknown): Record<string, unknown> | null =>
-  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
-
-const normalizeReports = (payload: unknown): ReportItem[] => {
-  const record = toRecord(payload);
-  const rawReports = Array.isArray(payload)
-    ? payload
-    : Array.isArray(record?.reports)
-      ? record.reports
-      : Array.isArray(record?.result)
-        ? record.result
-        : [];
-
-  return rawReports
-    .map((report): ReportItem | null => {
-      const reportRecord = toRecord(report);
-      const reportId = reportRecord?.reportId ?? reportRecord?.id;
-
-      if (reportId === undefined || reportId === null || reportId === "") {
-        return null;
-      }
-
-      return {
-        reportId: reportId as string | number,
-        title:
-          typeof reportRecord?.title === "string"
-            ? reportRecord.title
-            : undefined,
-        createdAt:
-          typeof reportRecord?.createdAt === "string"
-            ? reportRecord.createdAt
-            : undefined,
-        updatedAt:
-          typeof reportRecord?.updatedAt === "string"
-            ? reportRecord.updatedAt
-            : undefined,
-      };
-    })
-    .filter((report): report is ReportItem => report !== null);
-};
+import type { ReportListItem } from "../../contracts/reportList";
 
 const ResultList = () => {
   const navigate = useNavigate();
-  const [list, setList] = useState<ReportItem[]>([]);
+  const [list, setList] = useState<ReportListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchList = async () => {
       try {
-        const response = await getReports();
-        setList(normalizeReports(response));
+        const response = await fetchReportList();
+        setList(response.items);
       } catch (e) {
         console.error("목록 불러오기 실패:", e);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchList();
+    void fetchList();
   }, []);
 
-  const getFormattedDateTime = (report: ReportItem) => {
+  const getFormattedDateTime = (report: ReportListItem) => {
     if (!report.createdAt) {
       return {
         dateTimeChip: "0월 0일 · 오전 00:00",
@@ -78,12 +31,10 @@ const ResultList = () => {
       };
     }
 
-    const parts = report.createdAt.split(/[- :]/);
-    const month = parseInt(parts[1], 10);
-    const day = parseInt(parts[2], 10);
-    const hour = parseInt(parts[3], 10);
-    const minute = parseInt(parts[4], 10);
-
+    const month = report.createdAt.getMonth() + 1;
+    const day = report.createdAt.getDate();
+    const hour = report.createdAt.getHours();
+    const minute = report.createdAt.getMinutes();
     const ampm = hour >= 12 ? "오후" : "오전";
     const displayHour = hour % 12 === 0 ? 12 : hour % 12;
     const displayMinute = minute < 10 ? `0${minute}` : minute;
