@@ -1,101 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import api from "../../api/axios";
-import type { ReportPayloadV2, ReportWarning } from "../../types/reportPayloadV2";
-
-interface ChatMessage {
-  id: number | string;
-  role: "USER" | "ASSISTANT" | "SYSTEM";
-  content: string;
-}
+import { fetchChatHistory, sendChatMessage } from "../../api/chat";
+import type { ChatMessageViewModel } from "../../contracts/chat";
 
 interface ChatBtnProps {
-  reportId: string | number | undefined;
-  reportSnapshot?: ReportPayloadV2 | null;
+  reportId: string;
 }
 
-const toRecord = (value: unknown): Record<string, unknown> | null =>
-  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
-
-const normalizeRole = (value: unknown): ChatMessage["role"] => {
-  if (value === "USER" || value === "ASSISTANT" || value === "SYSTEM") {
-    return value;
-  }
-
-  if (value === "user") return "USER";
-  if (value === "assistant") return "ASSISTANT";
-  if (value === "system") return "SYSTEM";
-
-  return "ASSISTANT";
-};
-
-const normalizeMessage = (
-  message: unknown,
-  fallbackId: string | number,
-): ChatMessage | null => {
-  const record = toRecord(message);
-
-  if (!record) {
-    return null;
-  }
-
-  const content = record.content ?? record.message;
-
-  if (typeof content !== "string") {
-    return null;
-  }
-
-  return {
-    id:
-      typeof record.id === "string" || typeof record.id === "number"
-        ? record.id
-        : fallbackId,
-    role: normalizeRole(record.role ?? record.type),
-    content,
-  };
-};
-
-const normalizeMessages = (payload: unknown): ChatMessage[] => {
-  const record = toRecord(payload);
-  const rawMessages = Array.isArray(payload)
-    ? payload
-    : Array.isArray(record?.messages)
-      ? record.messages
-      : Array.isArray(record?.chat)
-        ? record.chat
-        : [];
-
-  return rawMessages
-    .map((message, index) => normalizeMessage(message, `message-${index}`))
-    .filter((message): message is ChatMessage => message !== null);
-};
-
-const normalizeWarnings = (payload: unknown): ReportWarning[] => {
-  const record = toRecord(payload);
-  return Array.isArray(record?.warnings)
-    ? (record.warnings as ReportWarning[])
-    : [];
-};
-
-const ChatBtn = ({ reportId, reportSnapshot }: ChatBtnProps) => {
+const ChatBtn = ({ reportId }: ChatBtnProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [warnings, setWarnings] = useState<ReportWarning[]>([]);
+  const [messages, setMessages] = useState<ChatMessageViewModel[]>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isBotResponding, setIsBotResponding] = useState(false);
 
   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  const fetchChatHistory = async () => {
+  const loadChatHistory = async () => {
     if (!reportId) return;
 
     setIsLoading(true);
     try {
-      const response = await api.get(
-        `/reports/${encodeURIComponent(String(reportId))}/chat/messages`,
-      );
-      setMessages(normalizeMessages(response.data));
-      setWarnings(normalizeWarnings(response.data));
+      const history = await fetchChatHistory(reportId);
+      setMessages(history);
+      setWarnings(history.flatMap((chatMessage) => chatMessage.warnings));
     } catch (error) {
       console.error("채팅 내역 로드 실패:", error);
     } finally {
@@ -115,40 +43,24 @@ const ChatBtn = ({ reportId, reportSnapshot }: ChatBtnProps) => {
     const userMessage = inputValue;
     setInputValue("");
 
-    const tempUserChat: ChatMessage = {
+    const tempUserChat: ChatMessageViewModel = {
       id: `user-${Date.now()}`,
-      role: "USER",
+      role: "user",
       content: userMessage,
+      createdAt: null,
+      warnings: [],
     };
     setMessages((prev) => [...prev, tempUserChat]);
     setIsBotResponding(true);
 
     try {
-      const response = await api.post(
-        `/reports/${encodeURIComponent(String(reportId))}/chat/messages`,
-        {
-          role: "USER",
-          content: userMessage,
-          reportSnapshot,
-        },
-      );
+      const assistantMessage = await sendChatMessage(reportId, userMessage);
 
-      const normalizedWarnings = normalizeWarnings(response.data);
-      const responseMessages = normalizeMessages(response.data);
-      const singleMessage = normalizeMessage(response.data, `bot-${Date.now()}`);
-
-      if (normalizedWarnings.length > 0) {
-        setWarnings(normalizedWarnings);
+      if (assistantMessage.warnings.length > 0) {
+        setWarnings(assistantMessage.warnings);
       }
 
-      setMessages((prev) => [
-        ...prev,
-        ...(responseMessages.length > 0
-          ? responseMessages
-          : singleMessage
-            ? [singleMessage]
-            : []),
-      ]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error("❌ [ChatBtn 에러 발생] 백엔드가 반환한 진짜 에러:");
       if (error.response) {
@@ -162,9 +74,11 @@ const ChatBtn = ({ reportId, reportSnapshot }: ChatBtnProps) => {
         ...prev,
         {
           id: `error-${Date.now()}`,
-          role: "ASSISTANT",
+          role: "assistant",
           content:
             "죄송합니다. 메시지 전송 중 오류가 발생했습니다. 다시 시도해 주세요.",
+          createdAt: null,
+          warnings: [],
         },
       ]);
     } finally {
@@ -174,7 +88,7 @@ const ChatBtn = ({ reportId, reportSnapshot }: ChatBtnProps) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetchChatHistory();
+      void loadChatHistory();
     }
   }, [isOpen, reportId]);
 
@@ -208,27 +122,27 @@ const ChatBtn = ({ reportId, reportSnapshot }: ChatBtnProps) => {
                 </p>
               </div>
             ) : (
-              messages.map((msg, index) => (
+              messages.map((chatMessage, index) => (
                 <div
-                  key={msg.id || `${msg.role}-${index}`}
+                  key={chatMessage.id || `${chatMessage.role}-${index}`}
                   className={`flex ${
-                    msg.role === "USER"
+                    chatMessage.role === "user"
                       ? "justify-end"
-                      : msg.role === "SYSTEM"
+                      : chatMessage.role === "system"
                         ? "justify-center"
                         : "justify-start"
                   }`}
                 >
                   <div
                     className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm font-medium leading-relaxed ${
-                      msg.role === "USER"
+                      chatMessage.role === "user"
                         ? "bg-[#1d3573] text-white rounded-tr-none"
-                        : msg.role === "SYSTEM"
+                        : chatMessage.role === "system"
                           ? "bg-amber-50 text-amber-800 border border-amber-100 rounded-xl text-xs"
                           : "bg-gray-100 text-gray-800 rounded-tl-none"
                     }`}
                   >
-                    {msg.content}
+                    {chatMessage.content}
                   </div>
                 </div>
               ))
@@ -239,10 +153,7 @@ const ChatBtn = ({ reportId, reportSnapshot }: ChatBtnProps) => {
                 <p className="font-black mb-1">채팅 참고 사항</p>
                 <ul className="space-y-1">
                   {warnings.map((warning, index) => (
-                    <li key={`${warning.code}-${index}`}>
-                      {warning.warningTitle || warning.code}
-                      {warning.warningDetail ? ` · ${warning.warningDetail}` : ""}
-                    </li>
+                    <li key={`${warning}-${index}`}>{warning}</li>
                   ))}
                 </ul>
               </div>

@@ -1,7 +1,12 @@
 import api from "../api/axios";
 import { submitAnalysisInput } from "../api/analysis";
+import {
+  fetchChatHistory as fetchReportChatHistory,
+  sendChatMessage as sendReportChatMessage,
+} from "../api/chat";
 import { fetchReportDetail, fetchReportList } from "../api/reports";
 import type { AnalysisInputPayload } from "../contracts/analysisInput";
+import type { ChatMessageViewModel } from "../contracts/chat";
 import type { NormalizedReportList } from "../contracts/reportList";
 import type { ReportMappingResult } from "../contracts/reportResponse";
 
@@ -81,3 +86,12 @@ export const getReports = async (): Promise<NormalizedReportList> =>
 export const getReportData = async (
   reportId: string,
 ): Promise<ReportMappingResult> => fetchReportDetail(reportId);
+
+export const getChatHistory = async (
+  reportId: string,
+): Promise<ChatMessageViewModel[]> => fetchReportChatHistory(reportId);
+
+export const postChatMessage = async (
+  reportId: string,
+  content: string,
+): Promise<ChatMessageViewModel> => sendReportChatMessage(reportId, content);
