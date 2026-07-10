@@ -2,6 +2,8 @@
 
 export type DisplayBucket = "stable" | "target" | "reach";
 
+export type PortfolioBucketName = "safety" | "match" | "reach";
+
 export type ProgramCategory = "SAFE" | "MODERATE" | "RISKY" | (string & {});
 
 export type WarningCode =

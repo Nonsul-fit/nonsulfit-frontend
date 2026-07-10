@@ -1,0 +1,24 @@
+{
+  "generatedReportV2": {
+    "reportVersion": "v2",
+    "recommendedPrograms": [
+      {
+        "programId": "valid-program",
+        "universityName": "유효대",
+        "departmentName": "국어국문학과",
+        "displayBucket": "target",
+        "finalScore": 70
+      },
+      {
+        "programId": "invalid-program",
+        "universityName": "누락대",
+        "finalScore": 69
+      }
+    ],
+    "portfolioStrategy": {
+      "safety": { "programIds": [] },
+      "match": { "programIds": ["valid-program"] },
+      "reach": { "programIds": ["invalid-program"] }
+    }
+  }
+}

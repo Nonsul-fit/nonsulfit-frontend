@@ -1,0 +1,18 @@
+{
+  "generatedReportV2": {
+    "reportVersion": "v2",
+    "recommendedPrograms": [
+      {
+        "programId": "array-match",
+        "universityName": "배열대",
+        "departmentName": "사회학과",
+        "finalScore": 75
+      }
+    ],
+    "portfolioStrategy": [
+      { "name": "safety", "programIds": [] },
+      { "name": "match", "programIds": ["array-match"] },
+      { "name": "reach", "programIds": [] }
+    ]
+  }
+}
