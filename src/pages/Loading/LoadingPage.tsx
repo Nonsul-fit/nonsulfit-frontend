@@ -1,35 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAnalysisContext } from "../../context/AnalysisContext";
-import { checkAnalysisStatus } from "../../types/nonsulService";
-
-const toRecord = (value: unknown): Record<string, unknown> | null =>
-  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
-
-const extractReportId = (statusResponse: unknown): string | number | null => {
-  const record = toRecord(statusResponse);
-  const report = toRecord(record?.report);
-  const data = toRecord(record?.data);
-  const reportId =
-    record?.reportId ?? report?.reportId ?? report?.id ?? data?.reportId;
-
-  return typeof reportId === "string" || typeof reportId === "number"
-    ? reportId
-    : null;
-};
+import { useAnalysisPolling } from "../../hooks/useAnalysisPolling";
 
 const LoadingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { analysisRunId, setAnalysisRunId } = useAnalysisContext();
-  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const routeAnalysisRunId = useMemo(() => {
     const state = location.state as { analysisRunId?: unknown } | null;
-    return typeof state?.analysisRunId === "string" ? state.analysisRunId : "";
+    return typeof state?.analysisRunId === "string" ? state.analysisRunId : null;
   }, [location.state]);
 
   const currentAnalysisRunId = analysisRunId || routeAnalysisRunId;
+  const polling = useAnalysisPolling(currentAnalysisRunId);
 
   useEffect(() => {
     if (routeAnalysisRunId && routeAnalysisRunId !== analysisRunId) {
@@ -38,56 +23,16 @@ const LoadingPage = () => {
   }, [analysisRunId, routeAnalysisRunId, setAnalysisRunId]);
 
   useEffect(() => {
-    if (!currentAnalysisRunId) {
-      setErrorMessage(
-        "분석 실행 ID가 없어 리포트 생성 상태를 확인할 수 없습니다.",
-      );
-      return;
+    if (polling.status === "COMPLETED" && polling.reportId) {
+      navigate(`/result/${polling.reportId}`, {
+        state: {
+          reportId: polling.reportId,
+        },
+      });
     }
+  }, [navigate, polling.reportId, polling.status]);
 
-    const poll = setInterval(async () => {
-      try {
-        const data = await checkAnalysisStatus(currentAnalysisRunId);
-
-        if (data.status === "COMPLETED") {
-          clearInterval(poll);
-          const reportId = extractReportId(data);
-
-          if (reportId !== null) {
-            navigate(`/result/${reportId}`, {
-              state: {
-                reportId,
-              },
-            });
-          } else {
-            setErrorMessage(
-              "분석은 완료되었지만 리포트 ID를 확인할 수 없습니다.",
-            );
-          }
-        }
-
-        if (data.status === "FAILED") {
-          clearInterval(poll);
-
-          const errorMsg =
-            data.errorMessage || "서버 데이터 형식이 올바르지 않습니다.";
-          alert(
-            `⚠️ 분석 실패\n\n이유: ${errorMsg}\n\n성적 입력 창으로 돌아갑니다.`,
-          );
-
-          navigate("/step03");
-        }
-      } catch (e) {
-        clearInterval(poll);
-        console.error("체크 실패", e);
-        setErrorMessage(
-          "분석 상태를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-        );
-      }
-    }, 2000);
-
-    return () => clearInterval(poll);
-  }, [currentAnalysisRunId, navigate]);
+  const errorMessage = getErrorMessage(currentAnalysisRunId, polling.error);
 
   if (errorMessage) {
     return (
@@ -115,6 +60,27 @@ const LoadingPage = () => {
       <p className="text-gray-400 text-sm">잠시만 기다려 주세요.</p>
     </div>
   );
+};
+
+const getErrorMessage = (
+  analysisRunId: string | null,
+  error: ReturnType<typeof useAnalysisPolling>["error"],
+): string => {
+  if (!analysisRunId) {
+    return "분석 실행 ID가 없어 리포트 생성 상태를 확인할 수 없습니다.";
+  }
+
+  if (!error) return "";
+
+  if (error.type === "ANALYSIS_FAILED") {
+    return "분석이 실패했습니다. 입력 값을 확인한 뒤 다시 시도해 주세요.";
+  }
+
+  if (error.type === "TIMEOUT") {
+    return "분석 상태 확인 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+  }
+
+  return "분석 상태를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 };
 
 export default LoadingPage;

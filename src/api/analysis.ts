@@ -1,6 +1,7 @@
 import api from "./axios";
 import type { AnalysisInputPayload } from "../contracts/analysisInput";
 import type { AnalysisStatus } from "../contracts/analysisStatus";
+import { analysisStatusMapper } from "../adapters/analysisStatusMapper";
 
 export interface AnalysisSubmissionResult {
   analysisRunId: string;
@@ -31,6 +32,22 @@ export async function submitAnalysisInput(
   sessionStorage.setItem(ANALYSIS_RUN_ID_STORAGE_KEY, result.analysisRunId);
 
   return result;
+}
+
+export async function fetchAnalysisStatus(
+  analysisRunId: string,
+): Promise<AnalysisSession> {
+  const response = await api.get<unknown>(
+    `/nonsulfit/analyses/${encodeURIComponent(analysisRunId)}/status`,
+  );
+  const status = analysisStatusMapper(response.data);
+
+  return {
+    analysisRunId: status.analysisRunId,
+    status: status.status,
+    reportId: status.reportId,
+    publicId: status.publicId,
+  };
 }
 
 const parseAnalysisSubmissionResult = (
