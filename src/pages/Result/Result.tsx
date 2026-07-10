@@ -3,12 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { FilterType } from "../../components/molecules/result/ResultHeader";
 import ResultHeader from "../../components/molecules/result/ResultHeader";
 import UnivTabs from "../../components/molecules/result/UnivTabs";
+import ContractErrorState from "../../components/organisms/common/ContractErrorState";
 import EvaluationReport from "../../components/organisms/result/EvaluationReport";
 import CaseStatisticsSummaryPanel from "../../components/organisms/result/CaseStatisticsSummaryPanel";
 import UnivCompetencyComparison from "../../components/organisms/result/UnivCompetencyComparison";
 import UnivDetailSummary from "../../components/organisms/result/UnivDetailSummary";
 import NextActionsPanel from "../../components/organisms/result/NextActionsPanel";
 import PatternSummaryPanel from "../../components/organisms/result/PatternSummaryPanel";
+import ReportEmptyState from "../../components/organisms/result/ReportEmptyState";
+import ReportPartialState from "../../components/organisms/result/ReportPartialState";
 import RiskSummaryPanel from "../../components/organisms/result/RiskSummaryPanel";
 import TierSummaryPanel from "../../components/organisms/result/TierSummaryPanel";
 import WarningsPanel from "../../components/organisms/result/WarningsPanel";
@@ -17,6 +20,7 @@ import {
   useNonsulResult,
 } from "../../hooks/useNonsulResult";
 import ChatBtn from "../../components/organisms/ChatBtn";
+import { ContractError } from "../../errors/contractErrors";
 import type { ReportId } from "../../types/identifiers";
 import type { RecommendedProgramItem } from "../../types/reportPayloadV2";
 
@@ -40,6 +44,11 @@ const Result = () => {
 
   const { result, isLoading, networkError } = useNonsulResult(reportId ?? "");
   const generatedReportV2 = result?.data ?? null;
+  const contractError = networkError
+    ? new ContractError("NETWORK_ERROR", networkError)
+    : result?.status === "failure"
+      ? new ContractError("REPORT_PAYLOAD_INVALID", result.errors)
+      : null;
   const recommendedPrograms = useMemo<RecommendedProgramItem[]>(() => {
     if (!generatedReportV2) return [];
 
@@ -65,6 +74,10 @@ const Result = () => {
         onFilterChange={handleFilterChange}
       />
 
+      {result?.status === "partial" && (
+        <ReportPartialState errors={result.errors} />
+      )}
+
       {!isLoading && generatedReportV2 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <WarningsPanel warnings={generatedReportV2.warnings} />
@@ -73,18 +86,11 @@ const Result = () => {
         </div>
       )}
 
-      {networkError ? (
-        <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100">
-          <p className="text-medium font-medium mb-4">
-            리포트 데이터를 불러오는 중 문제가 발생했습니다.
-          </p>
-          <button
-            onClick={() => navigate("/result")}
-            className="px-6 py-3 bg-primary text-white font-extrabold text-sm rounded-2xl shadow-md hover:opacity-90 transition-all"
-          >
-            분석 리스트 돌아가기
-          </button>
-        </div>
+      {contractError ? (
+        <ContractErrorState
+          error={contractError}
+          onRetry={() => navigate("/result")}
+        />
       ) : isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl border border-dashed border-gray-200">
           <div className="w-8 h-8 border-4 border-gray-100 border-t-primary rounded-full animate-spin mb-4" />
@@ -139,18 +145,12 @@ const Result = () => {
           </div>
         </>
       ) : (
-        <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100">
-          <p className="text-medium font-medium mb-4">
-            해당 조건에 맞는 추천 대학 리포트가 존재하지 않습니다.
-          </p>
-
-          <button
-            onClick={() => navigate("/home")}
-            className="px-6 py-3 bg-primary text-white font-extrabold text-sm rounded-2xl shadow-md hover:opacity-90 transition-all"
-          >
-            성적 입력하러 가기
-          </button>
-        </div>
+        <ReportEmptyState
+          title="해당 조건에 맞는 추천 대학 리포트가 없습니다."
+          description="정상적으로 조회되었지만 표시할 추천 결과가 없습니다."
+          actionLabel="성적 입력하러 가기"
+          onAction={() => navigate("/home")}
+        />
       )}
 
       <ChatBtn reportId={reportId} />

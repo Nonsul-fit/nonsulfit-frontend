@@ -1,6 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAnalysisContext } from "../../context/AnalysisContext";
+import ContractErrorState from "../../components/organisms/common/ContractErrorState";
+import { ContractError } from "../../errors/contractErrors";
 import { useAnalysisPolling } from "../../hooks/useAnalysisPolling";
 import { buildResultRoute } from "../../router/resultRoutes";
 
@@ -35,28 +37,20 @@ const LoadingPage = () => {
     }
   }, [clearAnalysisRunId, navigate, polling.reportId, polling.status]);
 
-  const errorMessage = getErrorMessage(
+  const contractError = getContractError(
     currentAnalysisRunId,
     polling.status,
     polling.reportId,
     polling.error,
   );
 
-  if (errorMessage) {
+  if (contractError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[75vh] py-20 px-4 text-center">
-        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-2xl">
-          !
-        </div>
-        <h2 className="text-xl font-bold mb-2">분석 상태를 불러올 수 없습니다.</h2>
-        <p className="text-gray-500 text-sm mb-8">{errorMessage}</p>
-        <button
-          type="button"
-          onClick={() => navigate("/step03")}
-          className="rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white"
-        >
-          성적 입력으로 돌아가기
-        </button>
+        <ContractErrorState
+          error={contractError}
+          onRetry={() => navigate("/step03")}
+        />
       </div>
     );
   }
@@ -70,31 +64,27 @@ const LoadingPage = () => {
   );
 };
 
-const getErrorMessage = (
+const getContractError = (
   analysisRunId: string | null,
   status: ReturnType<typeof useAnalysisPolling>["status"],
   reportId: string | null,
   error: ReturnType<typeof useAnalysisPolling>["error"],
-): string => {
+): ContractError | null => {
   if (!analysisRunId) {
-    return "분석 실행 ID가 없어 리포트 생성 상태를 확인할 수 없습니다.";
+    return new ContractError("ANALYSIS_RUN_ID_MISSING");
   }
 
   if (status === "COMPLETED" && !reportId) {
-    return "분석은 완료되었지만 리포트 ID를 확인할 수 없습니다.";
+    return new ContractError("COMPLETED_REPORT_ID_MISSING");
   }
 
-  if (!error) return "";
+  if (!error) return null;
 
   if (error.type === "ANALYSIS_FAILED") {
-    return "분석이 실패했습니다. 입력 값을 확인한 뒤 다시 시도해 주세요.";
+    return new ContractError("ANALYSIS_FAILED", error);
   }
 
-  if (error.type === "TIMEOUT") {
-    return "분석 상태 확인 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
-  }
-
-  return "분석 상태를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+  return new ContractError("NETWORK_ERROR", error);
 };
 
 export default LoadingPage;

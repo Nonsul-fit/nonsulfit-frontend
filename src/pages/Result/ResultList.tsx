@@ -2,21 +2,27 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchReportList } from "../../api/reports";
 import Card from "../../components/atoms/Card";
+import ContractErrorState from "../../components/organisms/common/ContractErrorState";
+import ReportEmptyState from "../../components/organisms/result/ReportEmptyState";
 import type { ReportListItem } from "../../contracts/reportList";
+import { ContractError } from "../../errors/contractErrors";
 import type { ReportId } from "../../types/identifiers";
 
 const ResultList = () => {
   const navigate = useNavigate();
   const [list, setList] = useState<ReportListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [contractError, setContractError] = useState<ContractError | null>(null);
 
   useEffect(() => {
     const fetchList = async () => {
       try {
         const response = await fetchReportList();
         setList(response.items);
+        setContractError(null);
       } catch (e) {
         console.error("목록 불러오기 실패:", e);
+        setContractError(new ContractError("REPORT_LIST_INVALID", e));
       } finally {
         setIsLoading(false);
       }
@@ -65,6 +71,20 @@ const ResultList = () => {
             분석 이력을 불러오는 중...
           </p>
         </div>
+      ) : contractError ? (
+        <ContractErrorState
+          error={contractError}
+          onRetry={() => {
+            setIsLoading(true);
+            setContractError(null);
+            void fetchReportList()
+              .then((response) => setList(response.items))
+              .catch((error) =>
+                setContractError(new ContractError("REPORT_LIST_INVALID", error)),
+              )
+              .finally(() => setIsLoading(false));
+          }}
+        />
       ) : list.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
           {list.map((report) => {
@@ -103,18 +123,12 @@ const ResultList = () => {
           })}
         </div>
       ) : (
-        <div className="text-center py-27 text-gray-400 bg-white rounded-xl border border-dashed border-gray-200 shadow-sm flex flex-col items-center justify-center">
-          <span className="text-4xl mb-4"></span>
-          <p className="text-medium font-extrabold text-gray-700 mb-5">
-            아직 생성된 논술핏 분석 리포트 이력이 없습니다.
-          </p>
-          <button
-            onClick={() => navigate("/home")}
-            className="px-6 py-3.5 bg-primary text-white font-extrabold text-medium rounded-xl shadow-md hover:opacity-90 transition-all duration-200"
-          >
-            첫 리포트 분석하러 가기
-          </button>
-        </div>
+        <ReportEmptyState
+          title="아직 생성된 논술핏 분석 리포트 이력이 없습니다."
+          description="첫 분석을 완료하면 이곳에 리포트가 표시됩니다."
+          actionLabel="첫 리포트 분석하러 가기"
+          onAction={() => navigate("/home")}
+        />
       )}
     </div>
   );
