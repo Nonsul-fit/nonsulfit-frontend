@@ -1,0 +1,13 @@
+{
+  "student": {
+    "grade": 3,
+    "repeatYear": 0,
+    "gender": "UNKNOWN",
+    "academic": "통합",
+    "desiredDepartment": "",
+    "desiredArea": "",
+    "applicationCount": 1
+  },
+  "schoolGrade": { "majorGrade": 0, "allGrade": 1 },
+  "testGrades": []
+}

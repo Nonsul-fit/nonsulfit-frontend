@@ -1,0 +1,29 @@
+{
+  "student": {
+    "grade": 3,
+    "repeatYear": 0,
+    "gender": "MALE",
+    "academic": "인문사회 계열",
+    "desiredDepartment": "경영학과",
+    "desiredArea": "서울",
+    "applicationCount": 6
+  },
+  "schoolGrade": { "majorGrade": 3.2, "allGrade": 3.5 },
+  "testGrades": [
+    {
+      "examType": "MOCK",
+      "year": 2026,
+      "month": 6,
+      "koreanGrade": 2,
+      "koreanPercentile": 88,
+      "koreanStandardScore": 128,
+      "mathGrade": 3,
+      "mathPercentile": 75,
+      "mathStandardScore": 122,
+      "englishGrade": 2,
+      "inquiry1Grade": 2,
+      "inquiry2Grade": 3,
+      "isRepresentative": true
+    }
+  ]
+}
