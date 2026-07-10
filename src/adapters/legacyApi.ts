@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import type { PublicReportId } from "../types/identifiers";
 
 export const legacyApi = {
   getStatus: async (): Promise<unknown> => {
@@ -11,18 +12,18 @@ export const legacyApi = {
     return response.data;
   },
 
-  getResultDetail: async (publicId: number): Promise<unknown> => {
+  getResultDetail: async (publicId: PublicReportId): Promise<unknown> => {
     const response = await api.get<unknown>(`/nonsulfit/result/${publicId}`);
     return response.data;
   },
 
-  getChatHistory: async (publicId: number): Promise<unknown> => {
+  getChatHistory: async (publicId: PublicReportId): Promise<unknown> => {
     const response = await api.get<unknown>(`/nonsulfit/chat/${publicId}`);
     return response.data;
   },
 
   sendChatMessage: async (
-    publicId: number,
+    publicId: PublicReportId,
     message: string,
   ): Promise<unknown> => {
     const response = await api.post<unknown>(`/nonsulfit/chat/${publicId}`, {

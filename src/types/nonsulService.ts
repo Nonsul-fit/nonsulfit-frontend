@@ -9,6 +9,7 @@ import type { AnalysisInputPayload } from "../contracts/analysisInput";
 import type { ChatMessageViewModel } from "../contracts/chat";
 import type { NormalizedReportList } from "../contracts/reportList";
 import type { ReportMappingResult } from "../contracts/reportResponse";
+import type { AnalysisRunId, ReportId } from "./identifiers";
 
 export interface UniversityReport {
   id: number;
@@ -39,7 +40,7 @@ export interface ResultResponse {
 }
 
 export interface SaveInputDataResponse {
-  analysisRunId: string;
+  analysisRunId: AnalysisRunId;
 }
 
 export type AnalysisStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
@@ -67,7 +68,7 @@ export const saveInputData = async (
 ): Promise<SaveInputDataResponse> => submitAnalysisInput(inputData);
 
 export const checkAnalysisStatus = async (
-  analysisRunId: string,
+  analysisRunId: AnalysisRunId,
 ): Promise<AnalysisStatusResponse> => {
   const response = await api.get<AnalysisStatusResponse>(
     `/nonsulfit/analyses/${encodeURIComponent(analysisRunId)}/status`,
@@ -84,14 +85,14 @@ export const getReports = async (): Promise<NormalizedReportList> =>
   fetchReportList();
 
 export const getReportData = async (
-  reportId: string,
+  reportId: ReportId,
 ): Promise<ReportMappingResult> => fetchReportDetail(reportId);
 
 export const getChatHistory = async (
-  reportId: string,
+  reportId: ReportId,
 ): Promise<ChatMessageViewModel[]> => fetchReportChatHistory(reportId);
 
 export const postChatMessage = async (
-  reportId: string,
+  reportId: ReportId,
   content: string,
 ): Promise<ChatMessageViewModel> => sendReportChatMessage(reportId, content);

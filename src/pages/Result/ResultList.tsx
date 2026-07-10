@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchReportList } from "../../api/reports";
 import Card from "../../components/atoms/Card";
 import type { ReportListItem } from "../../contracts/reportList";
+import type { ReportId } from "../../types/identifiers";
 
 const ResultList = () => {
   const navigate = useNavigate();
@@ -75,9 +76,9 @@ const ResultList = () => {
                 variant="white"
                 className="p-6 rounded-2xl border border-gray-100 flex justify-between items-center bg-white hover:border-primary/50 hover:shadow-lg hover:shadow-blue-900/5 transition-all duration-300 cursor-pointer group"
                 onClick={() =>
-                  navigate(`/result/${report.reportId}`, {
+                  navigate(`/result/${report.reportId as ReportId}`, {
                     state: {
-                      reportId: report.reportId,
+                      reportId: report.reportId as ReportId,
                     },
                   })
                 }

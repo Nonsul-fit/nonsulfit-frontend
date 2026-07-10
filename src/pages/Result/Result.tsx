@@ -17,6 +17,7 @@ import {
   useNonsulResult,
 } from "../../hooks/useNonsulResult";
 import ChatBtn from "../../components/organisms/ChatBtn";
+import type { ReportId } from "../../types/identifiers";
 import type { RecommendedProgramItem } from "../../types/reportPayloadV2";
 
 const displayBucketByFilter: Record<FilterType, "stable" | "target" | "reach"> =
@@ -28,7 +29,7 @@ const displayBucketByFilter: Record<FilterType, "stable" | "target" | "reach"> =
 
 const Result = () => {
   const navigate = useNavigate();
-  const { reportId } = useParams<{ reportId: string }>();
+  const { reportId } = useParams<{ reportId: ReportId }>();
 
   if (!reportId) {
     return null;

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchChatHistory, sendChatMessage } from "../../api/chat";
 import type { ChatMessageViewModel } from "../../contracts/chat";
+import type { ReportId } from "../../types/identifiers";
 
 interface ChatBtnProps {
-  reportId: string;
+  reportId: ReportId;
 }
 
 const ChatBtn = ({ reportId }: ChatBtnProps) => {

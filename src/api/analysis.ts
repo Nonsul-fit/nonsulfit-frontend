@@ -2,16 +2,21 @@ import api from "./axios";
 import type { AnalysisInputPayload } from "../contracts/analysisInput";
 import type { AnalysisStatus } from "../contracts/analysisStatus";
 import { analysisStatusMapper } from "../adapters/analysisStatusMapper";
+import type {
+  AnalysisRunId,
+  PublicReportId,
+  ReportId,
+} from "../types/identifiers";
 
 export interface AnalysisSubmissionResult {
-  analysisRunId: string;
+  analysisRunId: AnalysisRunId;
 }
 
 export interface AnalysisSession {
-  analysisRunId: string;
+  analysisRunId: AnalysisRunId;
   status: AnalysisStatus;
-  reportId: string | null;
-  publicId: number | null;
+  reportId: ReportId | null;
+  publicId: PublicReportId | null;
 }
 
 export class AnalysisRunIdMissingError extends Error {
@@ -35,7 +40,7 @@ export async function submitAnalysisInput(
 }
 
 export async function fetchAnalysisStatus(
-  analysisRunId: string,
+  analysisRunId: AnalysisRunId,
 ): Promise<AnalysisSession> {
   const response = await api.get<unknown>(
     `/nonsulfit/analyses/${encodeURIComponent(analysisRunId)}/status`,

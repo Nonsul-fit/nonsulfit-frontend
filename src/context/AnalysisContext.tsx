@@ -6,16 +6,17 @@ import React, {
   useState,
 } from "react";
 import { ANALYSIS_RUN_ID_STORAGE_KEY } from "../api/analysis";
+import type { AnalysisRunId } from "../types/identifiers";
 
 interface AnalysisContextValue {
-  analysisRunId: string | null;
-  setAnalysisRunId: (analysisRunId: string | null) => void;
+  analysisRunId: AnalysisRunId | null;
+  setAnalysisRunId: (analysisRunId: AnalysisRunId | null) => void;
   clearAnalysisRunId: () => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);
 
-const restoreAnalysisRunId = (): string | null => {
+const restoreAnalysisRunId = (): AnalysisRunId | null => {
   if (typeof sessionStorage === "undefined") return null;
 
   return sessionStorage.getItem(ANALYSIS_RUN_ID_STORAGE_KEY);
@@ -26,7 +27,7 @@ export const AnalysisProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [analysisRunId, setAnalysisRunId] = useState<string | null>(
+  const [analysisRunId, setAnalysisRunId] = useState<AnalysisRunId | null>(
     restoreAnalysisRunId,
   );
 

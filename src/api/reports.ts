@@ -2,6 +2,7 @@ import { reportListMapper } from "../adapters/reportListMapper";
 import { reportV2Mapper } from "../adapters/reportV2Mapper";
 import type { NormalizedReportList } from "../contracts/reportList";
 import type { ReportMappingResult } from "../contracts/reportResponse";
+import type { ReportId } from "../types/identifiers";
 import api from "./axios";
 
 export async function fetchReportList(params?: {
@@ -13,7 +14,7 @@ export async function fetchReportList(params?: {
 }
 
 export async function fetchReportDetail(
-  reportId: string,
+  reportId: ReportId,
 ): Promise<ReportMappingResult> {
   const response = await api.get<unknown>(
     `/reports/${encodeURIComponent(reportId)}`,

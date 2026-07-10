@@ -8,10 +8,11 @@ import type {
   ChatHistoryResponseDto,
   ChatMessageViewModel,
 } from "../contracts/chat";
+import type { ReportId } from "../types/identifiers";
 import api from "./axios";
 
 export async function fetchChatHistory(
-  reportId: string,
+  reportId: ReportId,
 ): Promise<ChatMessageViewModel[]> {
   const response = await api.get<ChatHistoryResponseDto>(
     `/reports/${encodeURIComponent(reportId)}/chat/messages`,
@@ -21,7 +22,7 @@ export async function fetchChatHistory(
 }
 
 export async function sendChatMessage(
-  reportId: string,
+  reportId: ReportId,
   content: string,
 ): Promise<ChatMessageViewModel> {
   const response = await api.post<BackendChatMessageDto>(
