@@ -1,3 +1,10 @@
+import { mapReportPayloadV2 } from "./reportV2Mapper";
+import type { ReportPayloadV2 } from "../types/reportPayloadV2";
+
+export function legacyResultMapper(raw: unknown): ReportPayloadV2 {
+  return mapReportPayloadV2(raw);
+}
+
 export const mapLegacyResultToUniversityList = (response: any): any[] => {
   const backendList = response.result || [];
 

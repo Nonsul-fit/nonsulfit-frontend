@@ -30,6 +30,10 @@ const Result = () => {
   const navigate = useNavigate();
   const { reportId } = useParams<{ reportId: string }>();
 
+  if (!reportId) {
+    return null;
+  }
+
   const [filter, setFilter] = useState<FilterType>("상향");
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
@@ -148,7 +152,7 @@ const Result = () => {
         </div>
       )}
 
-      <ChatBtn reportId={reportId} reportSnapshot={generatedReportV2} />
+      <ChatBtn reportId={reportId} />
     </div>
   );
 };
