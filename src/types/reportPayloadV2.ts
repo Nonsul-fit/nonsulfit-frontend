@@ -29,8 +29,7 @@ export interface ReportPayloadV2 {
   consultantSummary: ConsultantSummarySection;
   patternSummary: PatternSummarySection;
   caseStatisticsSummary: CaseStatisticsSummarySection;
-  riskSummary: RiskSummarySection;
-  nextActions: NextActionItem[];
+  competency: CompetencySection;
   warnings: ReportWarning[];
   metadata: ReportMetadataSection;
 }
@@ -50,6 +49,7 @@ export interface RecommendationSummarySection extends SectionFallbackFields {
   headline?: string;
   description?: string;
   totalRecommendedCount?: number;
+  applicationCount?: number;
   bucketCounts?: Partial<Record<DisplayBucket, number>>;
   categoryCounts?: Partial<Record<ProgramCategory, number>>;
 }
@@ -63,6 +63,9 @@ export interface RecommendedProgramItem extends SectionFallbackFields {
   finalScore?: number;
   successRateEstimate?: number | null;
   rationale?: string;
+  keyInsight?: string;
+  cautionNote?: string | null;
+  isFallbackCandidate?: boolean;
   highlights?: string[];
   cautions?: string[];
   metadata?: Record<string, unknown>;
@@ -95,7 +98,6 @@ export interface TierSummaryItem {
 
 export interface ConsultantSummarySection extends SectionFallbackFields {
   overallComment?: string;
-  keyInsights: string[];
   strategyNotes: string[];
 }
 
@@ -124,31 +126,23 @@ export interface CaseStatisticItem {
   note?: string;
 }
 
-export interface RiskSummarySection extends SectionFallbackFields {
-  overview?: string;
-  flaggedProgramIds: string[];
-  reasons: RiskReasonItem[];
+export interface CompetencySection {
+  available: boolean;
+  scores: Record<string, CompetencyScoreItem>;
 }
 
-export interface RiskReasonItem {
-  riskProgramId?: string;
-  riskFactor: string;
-  riskDetail?: string;
-  riskSeverity?: "low" | "medium" | "high" | (string & {});
+export interface CompetencyScoreItem {
+  mine: number;
+  admittedAverage: number;
 }
 
-export interface NextActionItem {
-  actionId?: string;
-  title: string;
-  description?: string;
-  priority?: "low" | "medium" | "high" | (string & {});
-  dueDate?: string;
-}
+export type WarningVisibility = "student" | "internal";
 
 export interface ReportWarning {
   code: WarningCode;
   warningTitle?: string;
   warningDetail?: string;
+  visibility?: WarningVisibility;
   affectedSection?: keyof Omit<ReportPayloadV2, "warnings">;
 }
 

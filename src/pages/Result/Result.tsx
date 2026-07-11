@@ -8,14 +8,12 @@ import EvaluationReport from "../../components/organisms/result/EvaluationReport
 import CaseStatisticsSummaryPanel from "../../components/organisms/result/CaseStatisticsSummaryPanel";
 import UnivCompetencyComparison from "../../components/organisms/result/UnivCompetencyComparison";
 import UnivDetailSummary from "../../components/organisms/result/UnivDetailSummary";
-import NextActionsPanel from "../../components/organisms/result/NextActionsPanel";
 import PatternSummaryPanel from "../../components/organisms/result/PatternSummaryPanel";
 import ReportEmptyState from "../../components/organisms/result/ReportEmptyState";
 import ReportPartialState from "../../components/organisms/result/ReportPartialState";
-import RiskSummaryPanel from "../../components/organisms/result/RiskSummaryPanel";
 import TierSummaryPanel from "../../components/organisms/result/TierSummaryPanel";
-import WarningsPanel from "../../components/organisms/result/WarningsPanel";
 import {
+  getFirstNonEmptyBucket,
   selectDisplayProgramsByBucket,
   useNonsulResult,
 } from "../../hooks/useNonsulResult";
@@ -24,22 +22,27 @@ import { ContractError } from "../../errors/contractErrors";
 import type { ReportId } from "../../types/identifiers";
 import type { RecommendedProgramItem } from "../../types/reportPayloadV2";
 
-const displayBucketByFilter: Record<FilterType, "stable" | "target" | "reach"> =
-  {
-    하향: "stable",
-    적정: "target",
-    상향: "reach",
-  };
+type DisplayBucket = "stable" | "target" | "reach";
+
+const displayBucketByFilter: Record<FilterType, DisplayBucket> = {
+  하향: "stable",
+  적정: "target",
+  상향: "reach",
+};
+
+const filterByDisplayBucket: Record<DisplayBucket, FilterType> = {
+  stable: "하향",
+  target: "적정",
+  reach: "상향",
+};
+
+const tabAutoSelectPriority: DisplayBucket[] = ["target", "reach", "stable"];
 
 const Result = () => {
   const navigate = useNavigate();
   const { reportId } = useParams<{ reportId: ReportId }>();
 
-  if (!reportId) {
-    return null;
-  }
-
-  const [filter, setFilter] = useState<FilterType>("상향");
+  const [manualFilter, setManualFilter] = useState<FilterType | null>(null);
   const [activeIdx, setActiveIdx] = useState<number>(0);
 
   const { result, isLoading, networkError } = useNonsulResult(reportId ?? "");
@@ -49,6 +52,23 @@ const Result = () => {
     : result?.status === "failure"
       ? new ContractError("REPORT_PAYLOAD_INVALID", result.errors)
       : null;
+
+  const autoFilter = useMemo<FilterType>(() => {
+    if (!generatedReportV2) return "적정";
+
+    const firstNonEmptyBucket = getFirstNonEmptyBucket(
+      generatedReportV2.recommendedPrograms,
+      generatedReportV2.portfolioStrategy,
+      tabAutoSelectPriority,
+    );
+
+    return firstNonEmptyBucket
+      ? filterByDisplayBucket[firstNonEmptyBucket]
+      : "적정";
+  }, [generatedReportV2]);
+
+  const filter = manualFilter ?? autoFilter;
+
   const recommendedPrograms = useMemo<RecommendedProgramItem[]>(() => {
     if (!generatedReportV2) return [];
 
@@ -59,31 +79,50 @@ const Result = () => {
     );
   }, [filter, generatedReportV2]);
 
+  const otherNonEmptyFilters = useMemo(() => {
+    if (!generatedReportV2) return [];
+
+    return tabAutoSelectPriority
+      .filter(
+        (bucket) =>
+          bucket !== displayBucketByFilter[filter] &&
+          selectDisplayProgramsByBucket(
+            generatedReportV2.recommendedPrograms,
+            generatedReportV2.portfolioStrategy,
+            bucket,
+          ).length > 0,
+      )
+      .map((bucket) => filterByDisplayBucket[bucket]);
+  }, [filter, generatedReportV2]);
+
+  const count =
+    generatedReportV2?.recommendationSummary?.totalRecommendedCount ??
+    generatedReportV2?.recommendationSummary?.applicationCount ??
+    generatedReportV2?.recommendedPrograms?.length ??
+    0;
+
   const handleFilterChange = (newFilter: FilterType) => {
-    setFilter(newFilter);
+    setManualFilter(newFilter);
     setActiveIdx(0);
   };
 
   const currentProgram =
     recommendedPrograms[activeIdx] || recommendedPrograms[0] || null;
 
+  if (!reportId) {
+    return null;
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16 relative">
       <ResultHeader
         currentFilter={filter}
         onFilterChange={handleFilterChange}
+        count={count}
       />
 
       {result?.status === "partial" && (
         <ReportPartialState errors={result.errors} />
-      )}
-
-      {!isLoading && generatedReportV2 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <WarningsPanel warnings={generatedReportV2.warnings} />
-          <RiskSummaryPanel riskSummary={generatedReportV2.riskSummary} />
-          <NextActionsPanel nextActions={generatedReportV2.nextActions} />
-        </div>
       )}
 
       {contractError ? (
@@ -126,6 +165,7 @@ const Result = () => {
           <UnivCompetencyComparison
             currentUniversity={currentProgram}
             currentUniversityList={recommendedPrograms}
+            competency={generatedReportV2?.competency}
           />
 
           <div className="flex justify-between items-center pt-4 w-full">
@@ -144,6 +184,11 @@ const Result = () => {
             </button>
           </div>
         </>
+      ) : otherNonEmptyFilters.length > 0 ? (
+        <ReportEmptyState
+          title="해당 조건에 맞는 추천 대학 리포트가 없습니다."
+          description={`다른 지원 전략(${otherNonEmptyFilters.join("/")}) 탭에서 결과를 확인하세요.`}
+        />
       ) : (
         <ReportEmptyState
           title="해당 조건에 맞는 추천 대학 리포트가 없습니다."

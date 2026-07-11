@@ -3,9 +3,14 @@ export type FilterType = "적정" | "상향" | "하향";
 interface ResultHeaderProps {
   currentFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
+  count: number;
 }
 
-const ResultHeader = ({ currentFilter, onFilterChange }: ResultHeaderProps) => {
+const ResultHeader = ({
+  currentFilter,
+  onFilterChange,
+  count,
+}: ResultHeaderProps) => {
   const filterButtons = [
     {
       type: "적정" as FilterType,
@@ -32,7 +37,7 @@ const ResultHeader = ({ currentFilter, onFilterChange }: ResultHeaderProps) => {
           입시 포트폴리오 진단 리포트
         </h1>
         <p className="mt-2 text-sm md:text-base font-medium text-gray-500">
-          최적화된 6개 대학 조합 리포트입니다. 카드를 선택해 상세 결과를
+          최적화된 {count}개 대학 조합 리포트입니다. 카드를 선택해 상세 결과를
           확인하세요.
         </p>
       </div>

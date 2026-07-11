@@ -1,4 +1,5 @@
 import type {
+  CompetencySection,
   DisplayBucket,
   PortfolioBucketName,
   PortfolioBucketStrategy,
@@ -35,11 +36,6 @@ interface LegacyResultItem {
   displayBucket?: unknown;
   category?: ProgramCategory;
   totalScore?: number;
-  reading?: number | null;
-  contentComprehension?: number | null;
-  understanding?: number | null;
-  structure?: number | null;
-  express?: number | null;
   portfolioReason?: string;
   overallEvaluationText?: string;
   strategy?: string;
@@ -114,8 +110,7 @@ export function reportV2Mapper(rawBody: unknown): ReportMappingResult {
     consultantSummary: objectOrEmpty(read(source, "consultantSummary")),
     patternSummary: objectOrEmpty(read(source, "patternSummary")),
     caseStatisticsSummary: objectOrEmpty(read(source, "caseStatisticsSummary")),
-    riskSummary: objectOrEmpty(read(source, "riskSummary")),
-    nextActions: arrayOrEmpty(read(source, "nextActions")),
+    competency: normalizeCompetency(read(source, "competency")),
     warnings: arrayOrEmpty(read(source, "warnings")),
     metadata: objectOrEmpty(read(source, "metadata")),
   } as unknown) as ReportPayloadV2);
@@ -145,7 +140,6 @@ const normalizeReportPayloadV2 = (payload: ReportPayloadV2): ReportPayloadV2 => 
   },
   consultantSummary: {
     ...payload.consultantSummary,
-    keyInsights: payload.consultantSummary?.keyInsights ?? [],
     strategyNotes: payload.consultantSummary?.strategyNotes ?? [],
   },
   patternSummary: {
@@ -157,12 +151,7 @@ const normalizeReportPayloadV2 = (payload: ReportPayloadV2): ReportPayloadV2 => 
     statistics: payload.caseStatisticsSummary?.statistics ?? [],
   },
   warnings: payload.warnings ?? [],
-  nextActions: payload.nextActions ?? [],
-  riskSummary: {
-    ...payload.riskSummary,
-    flaggedProgramIds: payload.riskSummary?.flaggedProgramIds ?? [],
-    reasons: payload.riskSummary?.reasons ?? [],
-  },
+  competency: payload.competency ?? { available: false, scores: {} },
   portfolioStrategy: {
     safety: normalizeBucketStrategy(payload.portfolioStrategy?.safety),
     match: normalizeBucketStrategy(payload.portfolioStrategy?.match),
@@ -352,13 +341,6 @@ const mapLegacyResultToReportPayloadV2 = (response: unknown): ReportPayloadV2 =>
           schoolRecordRatio:
             program.evaluationWeight?.schoolRecordWeight ?? 0,
           competitionRateLatest: program.competitionRateLatest ?? 0,
-          competencyScores: {
-            reading: toRadarScore(item.reading),
-            contentComprehension: toRadarScore(item.contentComprehension),
-            understanding: toRadarScore(item.understanding),
-            structure: toRadarScore(item.structure),
-            express: toRadarScore(item.express),
-          },
           strategy:
             item.strategy ??
             "제한 시간 내에 정형화된 답안 구조를 빠르게 도출하는 훈련이 필요합니다.",
@@ -385,11 +367,10 @@ const mapLegacyResultToReportPayloadV2 = (response: unknown): ReportPayloadV2 =>
       reach: makeBucketStrategy("상향 지원권", "reach", recommendedPrograms),
     },
     tierSummary: { tiers: [] },
-    consultantSummary: { keyInsights: [], strategyNotes: [] },
+    consultantSummary: { strategyNotes: [] },
     patternSummary: { matchedPatterns: [] },
     caseStatisticsSummary: { statistics: [] },
-    riskSummary: { flaggedProgramIds: [], reasons: [] },
-    nextActions: [],
+    competency: { available: false, scores: {} },
     warnings: [],
     metadata: { source: "legacy-compat" },
   };
@@ -407,11 +388,39 @@ const toSnakeCase = (value: string): string =>
   value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 
 const toDisplayBucket = (value: unknown): DisplayBucket | undefined => {
-  if (value === "stable" || value === "target" || value === "reach") {
-    return value;
+  const normalized =
+    typeof value === "string" ? value.toLowerCase() : value;
+
+  if (
+    normalized === "stable" ||
+    normalized === "target" ||
+    normalized === "reach"
+  ) {
+    return normalized;
   }
 
   return undefined;
+};
+
+const normalizeCompetency = (value: unknown): CompetencySection => {
+  const record = objectOrEmpty(value);
+  const scoresRecord = toRecord(record.scores) ?? {};
+  const scores: CompetencySection["scores"] = {};
+
+  for (const [subject, raw] of Object.entries(scoresRecord)) {
+    const item = toRecord(raw);
+    const mine = toNumber(item?.mine);
+    const admittedAverage = toNumber(item?.admittedAverage);
+
+    if (mine === undefined || admittedAverage === undefined) continue;
+
+    scores[subject] = { mine, admittedAverage };
+  }
+
+  return {
+    available: record.available === true,
+    scores,
+  };
 };
 
 const toPortfolioName = (value: unknown): PortfolioBucketName | undefined => {
@@ -486,5 +495,3 @@ const makeBucketStrategy = (
     recommendedCount: programIds.length,
   };
 };
-
-const toRadarScore = (score: unknown): number => (Number(score) || 0) / 20;

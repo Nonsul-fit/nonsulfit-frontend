@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import Card from "../../atoms/Card";
 import type {
   ConsultantSummarySection,
@@ -34,15 +35,15 @@ const EvaluationReport = ({
     summary?: LegacySummary;
   };
   const summary = legacyProgram.summary ?? {};
-  const keyInsights = consultantSummary?.keyInsights ?? [];
   const strategyNotes = consultantSummary?.strategyNotes ?? [];
   const overallComment =
-    consultantSummary?.overallComment ?? currentUniversity.rationale;
+    currentUniversity.rationale ?? consultantSummary?.overallComment;
   const insightText =
-    keyInsights.length > 0 ? keyInsights.join(" ") : overallComment;
+    currentUniversity.keyInsight ?? consultantSummary?.overallComment;
   const strategyText =
     strategyNotes.length > 0 ? strategyNotes.join(" ") : metadata.strategy;
   const departmentName = currentUniversity.departmentName;
+  const cautionNote = currentUniversity.cautionNote;
 
   const metrics = [
     {
@@ -124,6 +125,15 @@ const EvaluationReport = ({
               {departmentName || "추천 학과 정보가 없습니다."}
             </div>
           </section>
+
+          {cautionNote && (
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <span className="text-sm font-bold leading-relaxed break-keep">
+                {cautionNote}
+              </span>
+            </div>
+          )}
         </div>
       </Card>
 

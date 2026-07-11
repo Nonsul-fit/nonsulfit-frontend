@@ -9,72 +9,44 @@ import {
   Tooltip,
 } from "recharts";
 import Card from "../../atoms/Card";
-import type { RecommendedProgramItem } from "../../../types/reportPayloadV2";
+import EmptyCompetencyState from "./EmptyCompetencyState";
+import type {
+  CompetencySection,
+  RecommendedProgramItem,
+} from "../../../types/reportPayloadV2";
 
 interface UnivCompetencyComparisonProps {
   currentUniversity: RecommendedProgramItem | null;
   currentUniversityList?: RecommendedProgramItem[];
+  competency?: CompetencySection | null;
 }
 
 interface ResultProgramMetadata {
   examDateText?: string;
-  competencyScores?: Partial<Record<CompetencyKey, number>>;
 }
 
 interface LegacySummary {
   examDateText?: string;
 }
 
-interface RadarMetric {
-  subject: string;
-  score?: number;
-  avgScore?: number;
-}
-
-type CompetencyKey =
-  | "reading"
-  | "contentComprehension"
-  | "understanding"
-  | "structure"
-  | "express";
-
 const UnivCompetencyComparison = ({
   currentUniversity,
   currentUniversityList = [],
+  competency,
 }: UnivCompetencyComparisonProps) => {
   const metadata = (currentUniversity?.metadata ?? {}) as ResultProgramMetadata;
   const legacyProgram = currentUniversity as
-    | (RecommendedProgramItem & {
-        summary?: LegacySummary;
-        radarChartData?: RadarMetric[];
-      })
+    | (RecommendedProgramItem & { summary?: LegacySummary })
     | null;
   const summary = legacyProgram?.summary ?? {};
-  const competencyScores = metadata.competencyScores ?? {};
-  const radarChartData =
-    legacyProgram?.radarChartData ??
-    [
-      { subject: "독해력", score: competencyScores.reading },
-      { subject: "내용이해력", score: competencyScores.contentComprehension },
-      { subject: "문제이해력", score: competencyScores.understanding },
-      { subject: "구성력", score: competencyScores.structure },
-      { subject: "표현력", score: competencyScores.express },
-    ];
 
-  const customChartData = radarChartData.map((item, idx: number) => {
-    const userScore = item.score || 0;
-    // 기존 합격 평균선 계산식 안전하게 유지
-    const avgScore =
-      item.avgScore ||
-      Math.min(5.0, Math.max(1.0, userScore + (idx % 2 === 0 ? 0.4 : -0.3)));
-    return {
-      subject: item.subject,
-      userScore,
-      avgScore,
-    };
-  });
-
-  const scoreMetrics = customChartData;
+  const scoreMetrics = Object.entries(competency?.scores ?? {}).map(
+    ([subject, score]) => ({
+      subject,
+      userScore: score.mine,
+      avgScore: score.admittedAverage,
+    }),
+  );
 
   const parseDateText = (dateText: string) => {
     if (!dateText) return null;
@@ -133,96 +105,99 @@ const UnivCompetencyComparison = ({
           합격 역량 비교
         </h3>
 
-        <div className="flex flex-col md:flex-row items-stretch gap-4 flex-1 w-full">
-          <div className="w-full h-80 md:w-[340px] md:h-auto flex items-center justify-center shrink-0 bg-slate-50 border border-slate-100 rounded-2xl p-4 overflow-visible relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart
-                cx="50%"
-                cy="50%"
-                outerRadius="65%"
-                margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
-                data={customChartData}
-              >
-                <PolarGrid stroke="#e2e8f0" />
+        {competency?.available ? (
+          <div className="flex flex-col md:flex-row items-stretch gap-4 flex-1 w-full">
+            <div className="w-full h-80 md:w-[340px] md:h-auto flex items-center justify-center shrink-0 bg-slate-50 border border-slate-100 rounded-2xl p-4 overflow-visible relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="65%"
+                  margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
+                  data={scoreMetrics}
+                >
+                  <PolarGrid stroke="#e2e8f0" />
 
-                <PolarAngleAxis
-                  dataKey="subject"
-                  tick={{ fontSize: 11, fontWeight: 800, fill: "#475569" }}
-                />
-                <Radar
-                  name="합격자 평균"
-                  dataKey="avgScore"
-                  stroke="#5f5f5f"
-                  strokeWidth={2}
-                  strokeDasharray="4 4"
-                  fill="#10b981"
-                  fillOpacity={0.04}
-                />
-                <Radar
-                  name="내 점수"
-                  dataKey="userScore"
-                  stroke="#2054f0"
-                  strokeWidth={2.5}
-                  fill="#3784ff"
-                  fillOpacity={0.15}
-                />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="circle"
-                  iconSize={8}
-                  wrapperStyle={{
-                    fontSize: "11px",
-                    fontWeight: 800,
-                    paddingTop: "15px",
-                  }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderRadius: "0.75rem",
-                    border: "none",
-                    color: "#fff",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                  }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
+                  <PolarAngleAxis
+                    dataKey="subject"
+                    tick={{ fontSize: 11, fontWeight: 800, fill: "#475569" }}
+                  />
+                  <Radar
+                    name="합격자 평균"
+                    dataKey="avgScore"
+                    stroke="#5f5f5f"
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    fill="#10b981"
+                    fillOpacity={0.04}
+                  />
+                  <Radar
+                    name="내 점수"
+                    dataKey="userScore"
+                    stroke="#2054f0"
+                    strokeWidth={2.5}
+                    fill="#3784ff"
+                    fillOpacity={0.15}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      paddingTop: "15px",
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderRadius: "0.75rem",
+                      border: "none",
+                      color: "#fff",
+                      fontSize: "11px",
+                      fontWeight: "bold",
+                    }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
 
-          <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3 w-full">
-            {/* 🎯 중복 변수명(item, idx) 대신 metric, index로 분리 및 any 타입 추가 완료! */}
-            {scoreMetrics.map((metric, index: number) => (
-              <div
-                key={index}
-                className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col justify-between items-start text-left"
-              >
-                <span className="text-[12px] font-extrabold text-gray-500 tracking-tight break-keep">
-                  {metric.subject}
-                </span>
-                <div className="w-full flex flex-col mt-3 space-y-1.5">
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-[10px] font-black text-primary">
-                      내 점수
-                    </span>
-                    <span className="text-xl font-black text-primary">
-                      {metric.userScore.toFixed(1)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-baseline border-t border-gray-200/60 pt-1">
-                    <span className="text-[10px] font-bold text-gray-500">
-                      합격 평균
-                    </span>
-                    <span className="text-sm font-bold text-gray-500">
-                      {metric.avgScore.toFixed(1)}
-                    </span>
+            <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3 w-full">
+              {scoreMetrics.map((metric, index: number) => (
+                <div
+                  key={index}
+                  className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col justify-between items-start text-left"
+                >
+                  <span className="text-[12px] font-extrabold text-gray-500 tracking-tight break-keep">
+                    {metric.subject}
+                  </span>
+                  <div className="w-full flex flex-col mt-3 space-y-1.5">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-[10px] font-black text-primary">
+                        내 점수
+                      </span>
+                      <span className="text-xl font-black text-primary">
+                        {metric.userScore.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-baseline border-t border-gray-200/60 pt-1">
+                      <span className="text-[10px] font-bold text-gray-500">
+                        합격 평균
+                      </span>
+                      <span className="text-sm font-bold text-gray-500">
+                        {metric.avgScore.toFixed(1)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <EmptyCompetencyState />
+        )}
       </Card>
 
       <Card

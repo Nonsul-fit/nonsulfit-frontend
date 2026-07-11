@@ -48,6 +48,17 @@ export function selectDisplayProgramsByBucket(
   return programs.filter((program) => program.displayBucket === bucket);
 }
 
+export function getFirstNonEmptyBucket(
+  programs: NormalizedProgram[],
+  portfolio: NormalizedPortfolio,
+  priorityOrder: Exclude<DisplayBucketFilter, "all">[],
+): Exclude<DisplayBucketFilter, "all"> | undefined {
+  return priorityOrder.find(
+    (bucket) =>
+      selectDisplayProgramsByBucket(programs, portfolio, bucket).length > 0,
+  );
+}
+
 export function useNonsulResult(reportId: string): {
   result: ReportMappingResult | null;
   isLoading: boolean;

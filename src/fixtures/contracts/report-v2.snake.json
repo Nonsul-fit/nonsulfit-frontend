@@ -5,6 +5,7 @@
     "recommendation_summary": {
       "headline": "추천 요약",
       "total_recommended_count": 3,
+      "application_count": 3,
       "bucket_counts": { "stable": 1, "target": 1, "reach": 1 }
     },
     "recommended_programs": [
@@ -15,7 +16,9 @@
         "display_bucket": "stable",
         "category": "RISKY",
         "final_score": 91,
-        "success_rate_estimate": 0.63
+        "success_rate_estimate": 0.63,
+        "key_insight": "논제 적합성이 높은 지원권입니다.",
+        "caution_note": "경쟁률이 높은 편이니 최저 학력기준을 한 번 더 확인하세요."
       },
       {
         "program_id": "program-target",
@@ -23,14 +26,17 @@
         "department_name": "경제학과",
         "display_bucket": "target",
         "category": "SAFE",
-        "final_score": 84
+        "final_score": 84,
+        "key_insight": "안정적으로 지원 가능한 조합입니다.",
+        "caution_note": null
       },
       {
         "program_id": "program-reach",
         "university_name": "마바대",
         "department_name": "통계학과",
         "final_score": 77,
-        "category": "MODERATE"
+        "category": "MODERATE",
+        "key_insight": "상향 지원 시 논술 준비가 관건입니다."
       }
     ],
     "portfolio_strategy": {
@@ -41,13 +47,16 @@
     "tier_summary": { "summary": "티어 요약", "tiers": [] },
     "consultant_summary": {
       "overall_comment": "컨설턴트 코멘트",
-      "key_insights": ["논제 적합성"],
       "strategy_notes": ["지원군 분산"]
     },
     "pattern_summary": { "summary": "패턴 요약", "matched_patterns": [] },
     "case_statistics_summary": { "summary": "사례 통계", "statistics": [] },
-    "risk_summary": { "overview": "리스크 요약", "flagged_program_ids": [], "reasons": [] },
-    "next_actions": [{ "title": "기출 점검", "priority": "medium" }],
+    "competency": {
+      "available": true,
+      "scores": {
+        "독해력": { "mine": 3.2, "admitted_average": 3.8 }
+      }
+    },
     "warnings": [],
     "metadata": { "report_id": "report-1", "source": "fixture" }
   }

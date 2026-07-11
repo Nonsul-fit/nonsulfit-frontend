@@ -35,8 +35,7 @@ const sectionKeys = [
   "consultantSummary",
   "patternSummary",
   "caseStatisticsSummary",
-  "riskSummary",
-  "nextActions",
+  "competency",
   "warnings",
   "metadata",
 ] as const;
