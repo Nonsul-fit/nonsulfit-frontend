@@ -3,7 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { nanoid } from "nanoid";
 
-const clientKey = "test_gck_6bJXmgo28e7L4YD7kxJwVLAnGKWx";
+const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY;
+if (!clientKey) {
+  throw new Error("VITE_TOSS_CLIENT_KEY is not configured");
+}
 const customerKey = nanoid();
 
 const PaymentPage = () => {
