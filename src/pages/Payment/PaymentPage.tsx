@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   loadTossPayments,
-  type TossPaymentsWidgets,
+  type TossPaymentsPayment,
 } from "@tosspayments/tosspayments-sdk";
 import { nanoid } from "nanoid";
 import api from "../../api/axios";
@@ -10,6 +10,11 @@ import {
   PAYMENT_PRODUCT_CODE,
   type PaymentProductResponse,
 } from "../../contracts/payment";
+import {
+  canRequestPayment,
+  PAYMENT_METHODS,
+  type PaymentMethod,
+} from "../../contracts/paymentMethod";
 
 const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY;
 if (!clientKey) {
@@ -22,8 +27,12 @@ const PaymentPage = () => {
   const [product, setProduct] = useState<PaymentProductResponse | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [productError, setProductError] = useState<string | null>(null);
+  const [selectedMethod, setSelectedMethod] =
+    useState<PaymentMethod | null>("CARD");
+  const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
 
-  const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
+  const paymentRef = useRef<TossPaymentsPayment | null>(null);
 
   const isInitialized = useRef(false);
 
@@ -45,23 +54,14 @@ const PaymentPage = () => {
 
         const tossPayments = await loadTossPayments(clientKey);
 
-        const widgets = tossPayments.widgets({ customerKey });
+        const payment = tossPayments.payment({ customerKey });
 
-        await widgets.setAmount({
-          value: fetchedPrice,
-          currency: "KRW",
-        });
-
-        await Promise.all([
-          widgets.renderPaymentMethods({ selector: "#payment-element" }),
-          widgets.renderAgreement({ selector: "#agreement-element" }),
-        ]);
-
-        widgetsRef.current = widgets;
+        paymentRef.current = payment;
+        setIsPaymentReady(true);
         setProduct(fetchedProduct);
         setPrice(fetchedPrice);
       } catch (error) {
-        console.error("상품 정보 조회 또는 결제 위젯 초기화 실패:", error);
+        console.error("상품 정보 조회 또는 결제 초기화 실패:", error);
         setProductError(
           "상품 정보를 불러오지 못했습니다. 결제를 진행할 수 없습니다.",
         );
@@ -70,8 +70,20 @@ const PaymentPage = () => {
   }, []);
 
   const handlePaymentRequest = async () => {
-    if (!product || price === null || !widgetsRef.current) {
-      alert("상품 정보를 불러온 후 결제를 진행해 주세요.");
+    if (
+      !product ||
+      !canRequestPayment({
+        hasPaymentInstance: Boolean(paymentRef.current),
+        price,
+        selectedMethod,
+        hasAgreedToTerms,
+        hasProductError: Boolean(productError),
+      }) ||
+      !paymentRef.current ||
+      price === null ||
+      selectedMethod === null
+    ) {
+      alert("상품, 결제수단 및 필수 동의 항목을 확인해 주세요.");
       return;
     }
 
@@ -81,13 +93,29 @@ const PaymentPage = () => {
     }
 
     try {
-      await widgetsRef.current.requestPayment({
+      const paymentRequest = {
+        amount: { currency: "KRW" as const, value: price },
         orderId: nanoid(),
         orderName: product.name,
         customerEmail: email,
         successUrl: `${window.location.origin}/payment/success?email=${encodeURIComponent(email)}`,
         failUrl: `${window.location.origin}/payment/fail`,
-      });
+      };
+
+      if (selectedMethod === "CARD") {
+        await paymentRef.current.requestPayment({
+          ...paymentRequest,
+          method: "CARD",
+        });
+      } else {
+        await paymentRef.current.requestPayment({
+          ...paymentRequest,
+          method: "TRANSFER",
+        });
+      }
+
+      // VIRTUAL_ACCOUNT 등 추가 수단은 상점 계약 및 필수 옵션을 확인한 뒤
+      // 수단별 requestPayment 분기에서 전용 파라미터와 함께 확장한다.
     } catch (error) {
       console.error("결제 창 활성화 실패:", error);
     }
@@ -135,18 +163,63 @@ const PaymentPage = () => {
             자동 발송됩니다.
           </p>
         </div>
-        <div id="payment-element" className="w-full mt-4" />
+        <fieldset className="space-y-3 mt-6 md:mt-8">
+          <legend className="text-sm font-extrabold text-gray-800">
+            결제수단 선택 <span className="text-red-500">*</span>
+          </legend>
+          <div className="grid grid-cols-2 gap-3">
+            {PAYMENT_METHODS.map(({ value, label }) => (
+              <label
+                key={value}
+                className={`flex cursor-pointer items-center justify-center rounded-lg border px-4 py-3.5 text-sm font-extrabold transition-colors ${
+                  selectedMethod === value
+                    ? "border-primary bg-blue-50 text-primary"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={value}
+                  checked={selectedMethod === value}
+                  onChange={() => setSelectedMethod(value)}
+                  className="sr-only"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         {productError && (
           <p className="mt-4 text-sm font-bold text-red-500" role="alert">
             {productError}
           </p>
         )}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8 pt-4 border-t border-gray-100 mt-0">
-          <div id="agreement-element" className="w-full md:flex-1" />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8 pt-5 border-t border-gray-100 mt-6">
+          <label className="flex w-full cursor-pointer items-start gap-3 text-sm font-medium text-gray-600 md:flex-1">
+            <input
+              type="checkbox"
+              checked={hasAgreedToTerms}
+              onChange={(event) => setHasAgreedToTerms(event.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-primary"
+            />
+            <span>
+              결제 진행을 위해 서비스 이용약관 및 개인정보처리방침에 동의합니다.
+              <span className="ml-1 text-red-500">(필수)</span>
+            </span>
+          </label>
 
           <button
             onClick={handlePaymentRequest}
-            disabled={price === null || Boolean(productError)}
+            disabled={
+              !canRequestPayment({
+                hasPaymentInstance: isPaymentReady,
+                price,
+                selectedMethod,
+                hasAgreedToTerms,
+                hasProductError: Boolean(productError),
+              })
+            }
             className="px-6 py-3.5 bg-primary text-white font-extrabold text-medium rounded-lg hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 w-full md:w-auto md:min-w-[240px] shrink-0"
           >
             {price === null ? "결제 준비 중" : `${price.toLocaleString()}원 결제하기`}
