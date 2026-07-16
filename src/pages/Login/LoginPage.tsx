@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/axios";
 import Button from "../../components/atoms/Button";
 import Input from "../../components/atoms/Input";
 import { useForm } from "../../hooks/useForm";
 import AuthLayout from "../../layouts/AuthLayout";
+import { getSafePostLoginPath } from "../../utils/authRedirect";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   const { values, handleChange } = useForm({
@@ -39,8 +41,10 @@ const LoginPage = () => {
       localStorage.setItem("user", JSON.stringify(user));
 
       alert(`${user.name}님, 환영합니다!`);
-      navigate("/home");
-    } catch (error: any) {
+      navigate(getSafePostLoginPath(searchParams.get("redirect")), {
+        replace: true,
+      });
+    } catch (error: unknown) {
       console.error("로그인 에러:", error);
       alert("로그인 정보가 일치하지 않습니다.");
     } finally {
