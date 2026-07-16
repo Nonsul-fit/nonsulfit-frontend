@@ -1,5 +1,4 @@
 import type {
-  CompetencySection,
   DisplayBucket,
   PortfolioBucketName,
   PortfolioBucketStrategy,
@@ -62,6 +61,7 @@ export function extractReportV2Body(rawResponse: unknown): unknown {
 
 export function reportV2Mapper(rawBody: unknown): ReportMappingResult {
   const body = extractReportV2Body(rawBody);
+  const response = toRecord(rawBody);
 
   if (isLegacyResult(body)) {
     return { status: "success", data: mapLegacyResultToReportPayloadV2(body), errors: [] };
@@ -110,7 +110,9 @@ export function reportV2Mapper(rawBody: unknown): ReportMappingResult {
     consultantSummary: objectOrEmpty(read(source, "consultantSummary")),
     patternSummary: objectOrEmpty(read(source, "patternSummary")),
     caseStatisticsSummary: objectOrEmpty(read(source, "caseStatisticsSummary")),
-    competency: normalizeCompetency(read(source, "competency")),
+    studentCompetency: normalizeStudentCompetency(
+      read(response, "studentCompetency") ?? read(source, "studentCompetency"),
+    ),
     warnings: arrayOrEmpty(read(source, "warnings")),
     metadata: objectOrEmpty(read(source, "metadata")),
   } as unknown) as ReportPayloadV2);
@@ -151,7 +153,7 @@ const normalizeReportPayloadV2 = (payload: ReportPayloadV2): ReportPayloadV2 => 
     statistics: payload.caseStatisticsSummary?.statistics ?? [],
   },
   warnings: payload.warnings ?? [],
-  competency: payload.competency ?? { available: false, scores: {} },
+  studentCompetency: payload.studentCompetency ?? {},
   portfolioStrategy: {
     safety: normalizeBucketStrategy(payload.portfolioStrategy?.safety),
     match: normalizeBucketStrategy(payload.portfolioStrategy?.match),
@@ -370,7 +372,7 @@ const mapLegacyResultToReportPayloadV2 = (response: unknown): ReportPayloadV2 =>
     consultantSummary: { strategyNotes: [] },
     patternSummary: { matchedPatterns: [] },
     caseStatisticsSummary: { statistics: [] },
-    competency: { available: false, scores: {} },
+    studentCompetency: {},
     warnings: [],
     metadata: { source: "legacy-compat" },
   };
@@ -402,25 +404,30 @@ const toDisplayBucket = (value: unknown): DisplayBucket | undefined => {
   return undefined;
 };
 
-const normalizeCompetency = (value: unknown): CompetencySection => {
-  const record = objectOrEmpty(value);
-  const scoresRecord = toRecord(record.scores) ?? {};
-  const scores: CompetencySection["scores"] = {};
+const competencyKeys = [
+  "reading",
+  "content_understanding",
+  "prompt_understanding",
+  "structure",
+  "expression",
+] as const;
 
-  for (const [subject, raw] of Object.entries(scoresRecord)) {
-    const item = toRecord(raw);
-    const mine = toNumber(item?.mine);
-    const admittedAverage = toNumber(item?.admittedAverage);
+const normalizeStudentCompetency = (
+  value: unknown,
+): ReportPayloadV2["studentCompetency"] => {
+  const record = toRecord(value);
+  if (!record || Object.keys(record).length === 0) return {};
 
-    if (mine === undefined || admittedAverage === undefined) continue;
-
-    scores[subject] = { mine, admittedAverage };
-  }
-
-  return {
-    available: record.available === true,
-    scores,
-  };
+  return Object.fromEntries(
+    competencyKeys.map((key) => [
+      key,
+      record[key] === null
+        ? null
+        : typeof record[key] === "number" && Number.isFinite(record[key])
+          ? record[key]
+          : null,
+    ]),
+  );
 };
 
 const toPortfolioName = (value: unknown): PortfolioBucketName | undefined => {

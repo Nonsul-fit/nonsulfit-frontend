@@ -165,7 +165,7 @@ const Result = () => {
           <UnivCompetencyComparison
             currentUniversity={currentProgram}
             currentUniversityList={recommendedPrograms}
-            competency={generatedReportV2?.competency}
+            studentCompetency={generatedReportV2?.studentCompetency}
           />
 
           <div className="flex justify-between items-center pt-4 w-full">

@@ -35,7 +35,7 @@ const sectionKeys = [
   "consultantSummary",
   "patternSummary",
   "caseStatisticsSummary",
-  "competency",
+  "studentCompetency",
   "warnings",
   "metadata",
 ] as const;
@@ -64,6 +64,43 @@ test("reportV2Mapper_does_not_double_wrap_generatedReportV2", () => {
     "generatedReportV2" in Object(extractReportV2Body(readFixture("report-v2.camel.json"))),
     false,
   );
+});
+
+test("reportV2Mapper_maps_top_level_student_competency_snapshot", () => {
+  const raw = readFixture("report-v2.camel.json") as Record<string, unknown>;
+  raw.studentCompetency = {
+    reading: 80,
+    content_understanding: 75,
+    prompt_understanding: null,
+    structure: 70,
+    expression: 74,
+  };
+  const data = assertSuccess(raw);
+
+  assert.deepEqual(data.studentCompetency, raw.studentCompetency);
+});
+
+test("reportV2Mapper_keeps_partial_null_values_distinct_from_zero", () => {
+  const raw = readFixture("report-v2.camel.json") as Record<string, unknown>;
+  raw.studentCompetency = {
+    reading: 0,
+    content_understanding: null,
+    prompt_understanding: 78,
+    structure: null,
+    expression: 74,
+  };
+  const competency = assertSuccess(raw).studentCompetency;
+
+  assert.equal(competency.reading, 0);
+  assert.equal(competency.content_understanding, null);
+  assert.equal(competency.structure, null);
+});
+
+test("reportV2Mapper_distinguishes_empty_student_competency", () => {
+  const raw = readFixture("report-v2.camel.json") as Record<string, unknown>;
+  raw.studentCompetency = {};
+
+  assert.deepEqual(assertSuccess(raw).studentCompetency, {});
 });
 
 test("reportV2Mapper_preserves_all_existing_v2_sections", () => {

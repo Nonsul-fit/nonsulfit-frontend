@@ -51,13 +51,14 @@
     },
     "pattern_summary": { "summary": "패턴 요약", "matched_patterns": [] },
     "case_statistics_summary": { "summary": "사례 통계", "statistics": [] },
-    "competency": {
-      "available": true,
-      "scores": {
-        "독해력": { "mine": 3.2, "admitted_average": 3.8 }
-      }
-    },
     "warnings": [],
     "metadata": { "report_id": "report-1", "source": "fixture" }
+  },
+  "studentCompetency": {
+    "reading": 80.0,
+    "content_understanding": 75.0,
+    "prompt_understanding": 78.0,
+    "structure": 70.0,
+    "expression": 74.0
   }
 }

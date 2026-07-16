@@ -3,6 +3,7 @@ import {
   Legend,
   PolarAngleAxis,
   PolarGrid,
+  PolarRadiusAxis,
   Radar,
   RadarChart,
   ResponsiveContainer,
@@ -11,14 +12,14 @@ import {
 import Card from "../../atoms/Card";
 import EmptyCompetencyState from "./EmptyCompetencyState";
 import type {
-  CompetencySection,
   RecommendedProgramItem,
+  StudentCompetencySnapshot,
 } from "../../../types/reportPayloadV2";
 
 interface UnivCompetencyComparisonProps {
   currentUniversity: RecommendedProgramItem | null;
   currentUniversityList?: RecommendedProgramItem[];
-  competency?: CompetencySection | null;
+  studentCompetency?: StudentCompetencySnapshot | null;
 }
 
 interface ResultProgramMetadata {
@@ -32,7 +33,7 @@ interface LegacySummary {
 const UnivCompetencyComparison = ({
   currentUniversity,
   currentUniversityList = [],
-  competency,
+  studentCompetency,
 }: UnivCompetencyComparisonProps) => {
   const metadata = (currentUniversity?.metadata ?? {}) as ResultProgramMetadata;
   const legacyProgram = currentUniversity as
@@ -40,13 +41,22 @@ const UnivCompetencyComparison = ({
     | null;
   const summary = legacyProgram?.summary ?? {};
 
-  const scoreMetrics = Object.entries(competency?.scores ?? {}).map(
-    ([subject, score]) => ({
+  const competencyMetrics = [
+    { key: "reading", subject: "독해력" },
+    { key: "content_understanding", subject: "내용이해력" },
+    { key: "prompt_understanding", subject: "문제이해력" },
+    { key: "structure", subject: "구성력" },
+    { key: "expression", subject: "표현력" },
+  ] as const;
+  const hasCompetencySnapshot = Object.keys(studentCompetency ?? {}).length > 0;
+  const scoreMetrics = competencyMetrics.map(({ key, subject }) => {
+    const value = studentCompetency?.[key];
+    return {
       subject,
-      userScore: score.mine,
-      avgScore: score.admittedAverage,
-    }),
-  );
+      userScore:
+        typeof value === "number" && Number.isFinite(value) ? value : null,
+    };
+  });
 
   const parseDateText = (dateText: string) => {
     if (!dateText) return null;
@@ -101,12 +111,17 @@ const UnivCompetencyComparison = ({
         variant="white"
         className="lg:col-span-8 p-6 rounded-[2rem] flex flex-col shadow-sm"
       >
-        <h3 className="text-xl font-black text-gray-900 mb-6 tracking-tight">
-          합격 역량 비교
-        </h3>
+        <div className="mb-6">
+          <h3 className="text-xl font-black text-gray-900 tracking-tight">
+            합격 역량 비교
+          </h3>
+          <p className="mt-1 text-[11px] font-semibold text-gray-400">
+            이 리포트 분석 시점에 입력한 역량입니다.
+          </p>
+        </div>
 
-        {competency?.available ? (
-          <div className="flex flex-col md:flex-row items-stretch gap-4 flex-1 w-full">
+        <div className="flex flex-col md:flex-row items-stretch gap-4 flex-1 w-full">
+          {hasCompetencySnapshot ? (
             <div className="w-full h-80 md:w-[340px] md:h-auto flex items-center justify-center shrink-0 bg-slate-50 border border-slate-100 rounded-2xl p-4 overflow-visible relative">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart
@@ -117,19 +132,15 @@ const UnivCompetencyComparison = ({
                   data={scoreMetrics}
                 >
                   <PolarGrid stroke="#e2e8f0" />
+                  <PolarRadiusAxis
+                    domain={[0, 100]}
+                    tick={false}
+                    axisLine={false}
+                  />
 
                   <PolarAngleAxis
                     dataKey="subject"
                     tick={{ fontSize: 11, fontWeight: 800, fill: "#475569" }}
-                  />
-                  <Radar
-                    name="합격자 평균"
-                    dataKey="avgScore"
-                    stroke="#5f5f5f"
-                    strokeWidth={2}
-                    strokeDasharray="4 4"
-                    fill="#10b981"
-                    fillOpacity={0.04}
                   />
                   <Radar
                     name="내 점수"
@@ -163,41 +174,37 @@ const UnivCompetencyComparison = ({
                 </RadarChart>
               </ResponsiveContainer>
             </div>
+          ) : (
+            <div className="w-full h-80 md:w-[340px] md:h-auto shrink-0">
+              <EmptyCompetencyState />
+            </div>
+          )}
 
-            <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3 w-full">
-              {scoreMetrics.map((metric, index: number) => (
-                <div
-                  key={index}
-                  className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col justify-between items-start text-left"
-                >
-                  <span className="text-[12px] font-extrabold text-gray-500 tracking-tight break-keep">
-                    {metric.subject}
-                  </span>
-                  <div className="w-full flex flex-col mt-3 space-y-1.5">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-[10px] font-black text-primary">
-                        내 점수
-                      </span>
-                      <span className="text-xl font-black text-primary">
-                        {metric.userScore.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-baseline border-t border-gray-200/60 pt-1">
-                      <span className="text-[10px] font-bold text-gray-500">
-                        합격 평균
-                      </span>
-                      <span className="text-sm font-bold text-gray-500">
-                        {metric.avgScore.toFixed(1)}
-                      </span>
-                    </div>
+          <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3 w-full">
+            {scoreMetrics.map((metric) => (
+              <div
+                key={metric.subject}
+                className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col justify-between items-start text-left"
+              >
+                <span className="text-[12px] font-extrabold text-gray-500 tracking-tight break-keep">
+                  {metric.subject}
+                </span>
+                <div className="w-full flex flex-col mt-3 space-y-1.5">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-[10px] font-black text-primary">
+                      내 점수
+                    </span>
+                    <span className="text-xl font-black text-primary">
+                      {metric.userScore === null
+                        ? "미입력"
+                        : metric.userScore.toFixed(1)}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        ) : (
-          <EmptyCompetencyState />
-        )}
+        </div>
       </Card>
 
       <Card

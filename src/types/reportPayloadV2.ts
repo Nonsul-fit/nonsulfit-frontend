@@ -29,7 +29,7 @@ export interface ReportPayloadV2 {
   consultantSummary: ConsultantSummarySection;
   patternSummary: PatternSummarySection;
   caseStatisticsSummary: CaseStatisticsSummarySection;
-  competency: CompetencySection;
+  studentCompetency: StudentCompetencySnapshot;
   warnings: ReportWarning[];
   metadata: ReportMetadataSection;
 }
@@ -126,14 +126,12 @@ export interface CaseStatisticItem {
   note?: string;
 }
 
-export interface CompetencySection {
-  available: boolean;
-  scores: Record<string, CompetencyScoreItem>;
-}
-
-export interface CompetencyScoreItem {
-  mine: number;
-  admittedAverage: number;
+export interface StudentCompetencySnapshot {
+  reading?: number | null;
+  content_understanding?: number | null;
+  prompt_understanding?: number | null;
+  structure?: number | null;
+  expression?: number | null;
 }
 
 export type WarningVisibility = "student" | "internal";
