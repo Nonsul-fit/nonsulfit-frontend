@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react"; // 💡 중복 호출 방지를 위해 useRef 추가
 import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { PAYMENT_PRODUCT_CODE } from "../../contracts/payment";
 
 const SuccessPage = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const SuccessPage = () => {
         orderId,
         amount: Number(amount),
         email,
+        productCode: PAYMENT_PRODUCT_CODE,
       })
       .then((res) => {
         if (

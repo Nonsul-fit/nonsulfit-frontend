@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
-import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
+import {
+  loadTossPayments,
+  type TossPaymentsWidgets,
+} from "@tosspayments/tosspayments-sdk";
 import { nanoid } from "nanoid";
+import api from "../../api/axios";
+import {
+  PAYMENT_PRODUCT_CODE,
+  type PaymentProductResponse,
+} from "../../contracts/payment";
 
 const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY;
 if (!clientKey) {
@@ -11,45 +19,71 @@ const customerKey = nanoid();
 
 const PaymentPage = () => {
   const [email, setEmail] = useState("");
+  const [product, setProduct] = useState<PaymentProductResponse | null>(null);
+  const [price, setPrice] = useState<number | null>(null);
+  const [productError, setProductError] = useState<string | null>(null);
 
-  const widgetsRef = useRef<any>(null);
+  const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
 
   const isInitialized = useRef(false);
-  const price = 10000;
 
   useEffect(() => {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
     (async () => {
-      const tossPayments = await loadTossPayments(clientKey);
+      try {
+        const { data: fetchedProduct } =
+          await api.get<PaymentProductResponse>(
+            `/payment/products/${PAYMENT_PRODUCT_CODE}`,
+          );
+        const fetchedPrice = Number(fetchedProduct.price);
 
-      const widgets = tossPayments.widgets({ customerKey });
+        if (!Number.isFinite(fetchedPrice) || fetchedPrice <= 0) {
+          throw new Error("상품 가격이 올바르지 않습니다.");
+        }
 
-      await widgets.setAmount({
-        value: price,
-        currency: "KRW",
-      });
+        const tossPayments = await loadTossPayments(clientKey);
 
-      await Promise.all([
-        widgets.renderPaymentMethods({ selector: "#payment-element" }),
-        widgets.renderAgreement({ selector: "#agreement-element" }),
-      ]);
+        const widgets = tossPayments.widgets({ customerKey });
 
-      widgetsRef.current = widgets;
+        await widgets.setAmount({
+          value: fetchedPrice,
+          currency: "KRW",
+        });
+
+        await Promise.all([
+          widgets.renderPaymentMethods({ selector: "#payment-element" }),
+          widgets.renderAgreement({ selector: "#agreement-element" }),
+        ]);
+
+        widgetsRef.current = widgets;
+        setProduct(fetchedProduct);
+        setPrice(fetchedPrice);
+      } catch (error) {
+        console.error("상품 정보 조회 또는 결제 위젯 초기화 실패:", error);
+        setProductError(
+          "상품 정보를 불러오지 못했습니다. 결제를 진행할 수 없습니다.",
+        );
+      }
     })();
   }, []);
 
   const handlePaymentRequest = async () => {
+    if (!product || price === null || !widgetsRef.current) {
+      alert("상품 정보를 불러온 후 결제를 진행해 주세요.");
+      return;
+    }
+
     if (!email) {
       alert("모의고사를 받아보실 이메일 주소를 입력해 주세요!");
       return;
     }
 
     try {
-      await widgetsRef.current?.requestPayment({
+      await widgetsRef.current.requestPayment({
         orderId: nanoid(),
-        orderName: "논술핏 프리미엄 온라인 모의고사 (1회분)",
+        orderName: product.name,
         customerEmail: email,
         successUrl: `${window.location.origin}/payment/success?email=${encodeURIComponent(email)}`,
         failUrl: `${window.location.origin}/payment/fail`,
@@ -77,10 +111,10 @@ const PaymentPage = () => {
           </h3>
           <div className="flex justify-between items-center bg-gray-50 px-6 py-4 rounded-lg border border-gray-100">
             <span className="text-base font-extrabold text-gray-800">
-              논술핏 온라인 모의 테스트 (1회분)
+              {product?.name ?? "상품 정보를 불러오는 중입니다..."}
             </span>
             <span className="text-lg font-black text-gray-900">
-              {price.toLocaleString()}원
+              {price === null ? "-" : `${price.toLocaleString()}원`}
             </span>
           </div>
         </div>
@@ -102,14 +136,20 @@ const PaymentPage = () => {
           </p>
         </div>
         <div id="payment-element" className="w-full mt-4" />
+        {productError && (
+          <p className="mt-4 text-sm font-bold text-red-500" role="alert">
+            {productError}
+          </p>
+        )}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8 pt-4 border-t border-gray-100 mt-0">
           <div id="agreement-element" className="w-full md:flex-1" />
 
           <button
             onClick={handlePaymentRequest}
-            className="px-6 py-3.5 bg-primary text-white font-extrabold text-medium rounded-lg hover:opacity-90 transition-all duration-200 w-full md:w-auto md:min-w-[240px] shrink-0"
+            disabled={price === null || Boolean(productError)}
+            className="px-6 py-3.5 bg-primary text-white font-extrabold text-medium rounded-lg hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 w-full md:w-auto md:min-w-[240px] shrink-0"
           >
-            {price.toLocaleString()}원 결제하기
+            {price === null ? "결제 준비 중" : `${price.toLocaleString()}원 결제하기`}
           </button>
         </div>
       </div>
