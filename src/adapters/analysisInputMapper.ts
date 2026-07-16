@@ -15,6 +15,7 @@ export function mapFormToAnalysisInput(
 ): AnalysisInputPayload {
   const studentInfo = form.studentInfo;
   const academicInfo = form.academicInfo;
+  const essayInfo = form.essayInfo;
   const testGrades = (academicInfo.testGrades ?? academicInfo.mockExams ?? [])
     .filter(hasExamScore)
     .map(mapExamSlot);
@@ -29,6 +30,43 @@ export function mapFormToAnalysisInput(
         studentInfo.desiredDepartment ?? studentInfo.major ?? "",
       desiredArea: studentInfo.desiredArea ?? studentInfo.targetRegion ?? "",
       applicationCount: toNumber(studentInfo.applicationCount) ?? 0,
+    },
+    essayCompetency: {
+      reading: requireNumber(
+        toNumber(essayInfo.reading),
+        "essayCompetency.reading",
+      ),
+      contentUnderstanding: requireNumber(
+        toNumber(essayInfo.content_understanding),
+        "essayCompetency.contentUnderstanding",
+      ),
+      promptUnderstanding: requireNumber(
+        toNumber(essayInfo.prompt_understanding),
+        "essayCompetency.promptUnderstanding",
+      ),
+      structure: requireNumber(
+        toNumber(essayInfo.structure),
+        "essayCompetency.structure",
+      ),
+      expression: requireNumber(
+        toNumber(essayInfo.expression),
+        "essayCompetency.expression",
+      ),
+      ...optionalNumberField(
+        "chartPreference",
+        toNumber(essayInfo.chart_score),
+      ),
+      ...optionalNumberField(
+        "englishPreference",
+        toNumber(essayInfo.english_passage_score),
+      ),
+      ...optionalNumberField(
+        "mathPreference",
+        toNumber(essayInfo.math_question_score),
+      ),
+      ...(essayInfo.feedback?.trim()
+        ? { comment: essayInfo.feedback.trim() }
+        : {}),
     },
     schoolGrade: {
       majorGrade: requireNumber(
@@ -199,6 +237,12 @@ const requireNumber = (value: number | undefined, field: string): number => {
 
   return value;
 };
+
+const optionalNumberField = <Key extends string>(
+  key: Key,
+  value: number | undefined,
+): Partial<Record<Key, number>> =>
+  value === undefined ? {} : ({ [key]: value } as Record<Key, number>);
 
 const assignIfPresent = <Key extends keyof TestGradeEntry>(
   entry: TestGradeEntry,

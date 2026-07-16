@@ -8,6 +8,17 @@
     "desiredArea": "서울",
     "applicationCount": 6
   },
+  "essayCompetency": {
+    "reading": 80,
+    "contentUnderstanding": 75,
+    "promptUnderstanding": 78,
+    "structure": 70,
+    "expression": 74,
+    "chartPreference": 3,
+    "englishPreference": 2,
+    "mathPreference": 1,
+    "comment": "논리적 흐름이 좋습니다."
+  },
   "schoolGrade": { "majorGrade": 3.2, "allGrade": 3.5 },
   "testGrades": [
     {

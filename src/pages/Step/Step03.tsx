@@ -17,7 +17,8 @@ const Step03 = () => {
   const navigate = useNavigate();
   const { validateRequired } = useFormValidation();
   const { setAnalysisRunId } = useAnalysisContext();
-  const { studentInfo, academicInfo, setAcademicInfo } = useFormContext();
+  const { studentInfo, essayInfo, academicInfo, setAcademicInfo } =
+    useFormContext();
 
   const [serverError, setServerError] = useState<string>("");
 
@@ -81,6 +82,7 @@ const Step03 = () => {
         ...studentInfo,
         applicationCount: studentInfo.essayCount,
       },
+      essayInfo,
       academicInfo: {
         ...academicInfo,
         mockExams: filledExams,

@@ -8,6 +8,19 @@ export type AnalysisAcademic = "인문사회 계열" | "자연 계열" | "통합
 
 export type AnalysisExamType = "MOCK" | "CSAT";
 
+export interface EssayCompetencyInput {
+  reading: number;
+  contentUnderstanding: number;
+  promptUnderstanding: number;
+  structure: number;
+  expression: number;
+  chartPreference?: number;
+  englishPreference?: number;
+  mathPreference?: number;
+  styleVector?: Record<string, unknown>;
+  comment?: string;
+}
+
 export interface AnalysisInputPayload {
   student: {
     grade: number;
@@ -18,6 +31,7 @@ export interface AnalysisInputPayload {
     desiredArea: string;
     applicationCount: number;
   };
+  essayCompetency?: EssayCompetencyInput | null;
   schoolGrade: { majorGrade: number; allGrade: number };
   testGrades: TestGradeEntry[];
 }
@@ -51,6 +65,17 @@ export interface NonsulFormState {
     desiredArea?: string;
     applicationCount?: string | number;
     gender?: GenderInput;
+  };
+  essayInfo: {
+    reading?: string | number;
+    content_understanding?: string | number;
+    prompt_understanding?: string | number;
+    structure?: string | number;
+    expression?: string | number;
+    chart_score?: string | number;
+    english_passage_score?: string | number;
+    math_question_score?: string | number;
+    feedback?: string;
   };
   academicInfo: {
     gpaCore?: string | number;

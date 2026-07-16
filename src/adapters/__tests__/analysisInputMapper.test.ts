@@ -30,6 +30,17 @@ const createValidForm = (): NonsulFormState => ({
     applicationCount: "6",
     gender: "남자",
   },
+  essayInfo: {
+    reading: "80",
+    content_understanding: "75",
+    prompt_understanding: "78",
+    structure: "70",
+    expression: "74",
+    chart_score: 3,
+    english_passage_score: 2,
+    math_question_score: 1,
+    feedback: "  논리적 흐름이 좋습니다.  ",
+  },
   academicInfo: {
     gpaCore: "3.2",
     gpaAll: "3.5",
@@ -51,6 +62,35 @@ test("analysisInputMapper_maps_application_count", () => {
   assert.deepEqual(
     mapFormToAnalysisInput(createValidForm()),
     readFixture("analysis-input.valid.json"),
+  );
+});
+
+test("analysisInputMapper_maps_step2_values_to_backend_essay_competency_keys", () => {
+  const essayCompetency = mapFormToAnalysisInput(createValidForm()).essayCompetency;
+
+  assert.deepEqual(essayCompetency, {
+    reading: 80,
+    contentUnderstanding: 75,
+    promptUnderstanding: 78,
+    structure: 70,
+    expression: 74,
+    chartPreference: 3,
+    englishPreference: 2,
+    mathPreference: 1,
+    comment: "논리적 흐름이 좋습니다.",
+  });
+  assert.equal(Object.hasOwn(essayCompetency!, "contentComprehension"), false);
+  assert.equal(Object.hasOwn(essayCompetency!, "understanding"), false);
+  assert.equal(Object.hasOwn(essayCompetency!, "express"), false);
+});
+
+test("analysisInputMapper_requires_all_five_essay_competency_scores", () => {
+  const form = createValidForm();
+  form.essayInfo.expression = "";
+
+  assert.throws(
+    () => mapFormToAnalysisInput(form),
+    /essayCompetency\.expression is required/,
   );
 });
 

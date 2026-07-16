@@ -31,6 +31,17 @@ test("analysis flow maps input fixture and stores analysisRunId without legacy s
       applicationCount: "6",
       gender: "남자",
     },
+    essayInfo: {
+      reading: "80",
+      content_understanding: "75",
+      prompt_understanding: "78",
+      structure: "70",
+      expression: "74",
+      chart_score: 3,
+      english_passage_score: 2,
+      math_question_score: 1,
+      feedback: "논리적 흐름이 좋습니다.",
+    },
     academicInfo: {
       gpaCore: "3.2",
       gpaAll: "3.5",
@@ -49,6 +60,17 @@ test("analysis flow maps input fixture and stores analysisRunId without legacy s
   });
 
   assert.deepEqual(mapped, input);
+  assert.deepEqual(mapped.essayCompetency, {
+    reading: 80,
+    contentUnderstanding: 75,
+    promptUnderstanding: 78,
+    structure: 70,
+    expression: 74,
+    chartPreference: 3,
+    englishPreference: 2,
+    mathPreference: 1,
+    comment: "논리적 흐름이 좋습니다.",
+  });
   assert.equal(completed.status, "COMPLETED");
   assert.equal(completed.reportId, "7d5f65c4-a038-4b94-a8a2-b896449a9ddd");
 });
