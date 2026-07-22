@@ -13,7 +13,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
           <img
             src={brandLogo}
             className="w-16 mx-auto block"
-            alt="Nonsulfit Logo"
+            alt="논술핏"
           />
         </div>
 

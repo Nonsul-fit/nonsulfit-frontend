@@ -1,3 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "nonsulfit.com" }],
+      "destination": "https://www.nonsulfit.com/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

@@ -28,7 +28,7 @@ const Header = () => {
       <div className="flex justify-between items-center w-full p-14">
         <img
           src={brandLogo2}
-          alt="Logo"
+          alt="논술핏"
           className="h-10 w-auto cursor-pointer"
           onClick={() => navigate("/home")}
         />
