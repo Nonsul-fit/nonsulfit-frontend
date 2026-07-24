@@ -14,7 +14,7 @@ const getProgramMeta = (program: RecommendedProgramItem) =>
 
 const UnivTabs = ({ list, activeIdx, onSelect }: UnivTabsProps) => {
   return (
-    <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {list.map((program, idx) => {
         const isActive = activeIdx === idx;
         const metadata = getProgramMeta(program);
@@ -31,7 +31,10 @@ const UnivTabs = ({ list, activeIdx, onSelect }: UnivTabsProps) => {
             }`}
           >
             <div className="flex items-center gap-1.5 min-w-0">
-              <TagChip category={program.category} />
+              <TagChip
+                category={program.category}
+                displayBucket={program.displayBucket}
+              />
               {program.sectionFallback && (
                 <span
                   title={program.fallbackReason}

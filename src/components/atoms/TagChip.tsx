@@ -1,7 +1,11 @@
-import type { ProgramCategory } from "../../types/reportPayloadV2";
+import type {
+  DisplayBucket,
+  ProgramCategory,
+} from "../../types/reportPayloadV2";
 
 interface TagChipProps {
   category: ProgramCategory;
+  displayBucket?: DisplayBucket;
 }
 
 const categoryPresentation: Record<
@@ -22,8 +26,22 @@ const categoryPresentation: Record<
   },
 };
 
-const TagChip = ({ category }: TagChipProps) => {
-  const presentation = categoryPresentation[category] ?? {
+const displayBucketPresentation: Record<
+  DisplayBucket,
+  { label: string; colorClass: string }
+> = {
+  reach: categoryPresentation.RISKY,
+  target: categoryPresentation.MODERATE,
+  stable: {
+    ...categoryPresentation.SAFE,
+    label: "안정",
+  },
+};
+
+const TagChip = ({ category, displayBucket }: TagChipProps) => {
+  const presentation = (displayBucket
+    ? displayBucketPresentation[displayBucket]
+    : categoryPresentation[category]) ?? {
     label: "추천",
     colorClass: "bg-gray-100 text-gray-600 border-gray-200",
   };
