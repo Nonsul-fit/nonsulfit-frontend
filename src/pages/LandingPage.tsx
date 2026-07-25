@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -19,7 +19,8 @@ import brandLogo from "../assets/brand-logo3.png";
 import kairosBanner from "../assets/kairos.png";
 import kimYoonHwanBanner from "../assets/kimyoonhwan.png";
 import nonsulLearnBanner from "../assets/nonsullearn.png";
-import heroBackground from "../../Animate_this_exact_imagedo_not_redesign_or.gif";
+import heroBackgroundMp4 from "../assets/hero-background.mp4";
+import heroBackgroundWebm from "../assets/hero-background.webm";
 import "./LandingPage.css";
 
 const universities = [
@@ -51,6 +52,7 @@ const faq = [
 export default function LandingPage() {
   const navigate = useNavigate();
   const heroRef = useRef<HTMLElement>(null);
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
   const finalRef = useRef<HTMLElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [heroStep, setHeroStep] = useState(2);
@@ -105,6 +107,37 @@ export default function LandingPage() {
     return () => { revealObserver.disconnect(); heroObserver.disconnect(); finalObserver.disconnect(); };
   }, []);
 
+  useEffect(() => {
+    const hero = heroRef.current;
+    const video = heroVideoRef.current;
+    if (!hero || !video) return;
+
+    const syncPlayback = (isVisible: boolean) => {
+      if (!isVisible || document.hidden) {
+        video.pause();
+        return;
+      }
+      void video.play().catch(() => {
+        // Autoplay can still be blocked by a user-level browser preference.
+      });
+    };
+
+    const videoObserver = new IntersectionObserver(
+      ([entry]) => syncPlayback(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    const handleVisibilityChange = () =>
+      syncPlayback(hero.getBoundingClientRect().bottom > 0);
+
+    videoObserver.observe(hero);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      videoObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      video.pause();
+    };
+  }, []);
+
   return (
     <div className="nf-page">
       <div className="nf-announcement">2027학년도 논술 전형 데이터를 반영한 지원 전략 분석을 시작했습니다.<button onClick={login}>2027 전형 확인하기 <ArrowRight size={14} /></button></div>
@@ -119,7 +152,21 @@ export default function LandingPage() {
       </header>
 
       <main>
-        <section className="nf-hero" id="top" ref={heroRef} style={{ "--nf-hero-background": `url(${heroBackground})` } as CSSProperties}>
+        <section className="nf-hero" id="top" ref={heroRef}>
+          <video
+            ref={heroVideoRef}
+            className="nf-hero-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden="true"
+            tabIndex={-1}
+          >
+            <source src={heroBackgroundWebm} type="video/webm; codecs=vp9" />
+            <source src={heroBackgroundMp4} type="video/mp4; codecs=avc1.640029" />
+          </video>
           <div className="nf-container nf-hero-grid">
             <div className="nf-reveal"><span className="nf-eyebrow">논술 지원 전략 분석 리포트</span><h1><span className="sr-only">논술핏: </span>논술 지원,<br />이제는 감이 아니라<br /><em>근거입니다.</em></h1><p>성적, 논술 역량, 수능 최저, 대학별 전형을 함께 분석해<br className="desktop-only" /><br />지원 가능한 대학과<br />왜 그 대학이 유리한지,<br />무엇을 먼저 보완해야 하는지까지 알려드립니다.</p><div className="nf-actions"><button className="nf-button" onClick={login}>내 지원 전략 무료로 확인하기 <ArrowRight size={18} /></button><button className="nf-button nf-button-secondary" onClick={() => scrollTo("report")}>실제 리포트 먼저 보기</button></div><small className="nf-helper">약 3분 소요 · 추천 근거 포함 · 6개 지원 조합 제공</small></div>
             <div className="nf-hero-demo nf-reveal" aria-live="polite">
