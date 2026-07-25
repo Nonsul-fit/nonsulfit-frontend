@@ -24,3 +24,51 @@
 @media(max-width:896px){.nf-section{padding:88px 0}.nf-section-head{margin-bottom:42px}.nf-nav{height:68px}.nf-hero-grid{padding-block:74px 94px}.nf-dashboard{border-radius:20px}.nf-button{min-height:58px}.nf-partner-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.nf-page{width:100%;max-width:100vw}.nf-hero-grid>*{min-width:0}.nf-nav{min-width:0}.nf-logo{min-width:0}.nf-menu-button{display:flex;flex:0 0 44px}.nf-announcement{overflow:hidden}.nf-demo-steps{max-width:100%;gap:6px}.nf-demo-steps span{min-width:0}.nf-hero h1{font-family:var(--display);font-size:40px;font-weight:700;line-height:1.02;letter-spacing:-.052em}.nf-section-head h2,.nf-sim-grid h2{font-size:34px;line-height:1.08}.nf-section-head p,.nf-sim-grid>div>p{font-size:16px}.nf-demo-panel{border-radius:24px}.nf-form-mock,.nf-input-summary,.nf-slider-card,.nf-sim-results,.nf-before-after article{border-radius:20px}.nf-partner-grid{grid-template-columns:1fr;gap:16px}.nf-partner-banner{aspect-ratio:2/1}.nf-partner-banner img{object-fit:contain}.nf-partner-content{padding:24px}.nf-section{padding:60px 0}.nf-hero-grid{padding-block:52px 64px}.nf-final{padding:64px 0}}
 .nf-result-row b,.nf-tier-row b,.nf-demo-fields b,.nf-form-head>strong,.nf-university dd,.nf-before-after dd,.nf-trust-meta b,.nf-detail h3{font-variant-numeric:tabular-nums}
+
+/* Hero — source-of-truth treatment from the supplied animated artwork */
+.nf-header{transition:background .42s var(--ease),border-color .42s var(--ease),box-shadow .42s var(--ease),color .42s var(--ease)}
+.nf-header-over-hero{background:rgba(3,12,27,.58);border-color:rgba(125,190,255,.15);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 12px 36px rgba(0,5,18,.16);backdrop-filter:blur(24px) saturate(145%)}
+.nf-header-over-hero .nf-logo small,.nf-header-over-hero .nf-nav-links button,.nf-header-over-hero .nf-text-button{color:rgba(224,239,255,.74)}
+.nf-header-over-hero .nf-nav-links button:hover,.nf-header-over-hero .nf-text-button:hover{color:#fff}
+.nf-header-over-hero .nf-button-small{background:rgba(27,112,255,.78);border-color:rgba(157,211,255,.32);box-shadow:0 12px 30px rgba(0,78,210,.3),inset 0 1px 0 rgba(255,255,255,.18)}
+.nf-header-over-hero .nf-menu-button{color:#e9f5ff;background:rgba(255,255,255,.08);border-color:rgba(185,222,255,.2)}
+.nf-hero{isolation:isolate;min-height:820px;color:#fff;background-image:var(--nf-hero-background);background-size:cover;background-position:center;background-repeat:no-repeat}
+.nf-hero:before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,rgba(1,8,20,.94) 0%,rgba(2,12,29,.8) 38%,rgba(2,13,31,.33) 63%,rgba(1,8,20,.48) 100%),linear-gradient(180deg,rgba(1,8,20,.12) 0%,transparent 50%,rgba(1,7,18,.7) 100%)}
+.nf-hero:after{content:"";position:absolute;z-index:3;pointer-events:none;left:0;right:0;bottom:-1px;height:150px;background:linear-gradient(180deg,transparent 0%,rgba(3,10,23,.72) 42%,#fff 100%)}
+.nf-hero-grid{position:relative;z-index:4;grid-template-columns:.92fr 1.08fr;gap:72px;padding:76px 0 122px}
+.nf-hero .nf-eyebrow{color:#8fd3ff;text-shadow:0 0 24px rgba(53,162,255,.55)}
+.nf-hero .nf-eyebrow:before{background:#69c6ff;box-shadow:0 0 0 5px rgba(67,168,255,.12),0 0 20px rgba(75,181,255,.9)}
+.nf-hero h1{max-width:720px;color:#f7fbff;font-size:clamp(55px,5.65vw,74px);font-weight:650;line-height:1.005;letter-spacing:-.058em;text-shadow:0 3px 34px rgba(0,4,15,.54)}
+.nf-hero h1 em{color:#78caff;text-shadow:0 0 34px rgba(43,153,255,.55)}
+.nf-hero p{max-width:590px;color:rgba(221,236,249,.78);font-size:17px;line-height:1.78;letter-spacing:-.012em;text-shadow:0 2px 20px rgba(0,5,18,.55)}
+.nf-hero .nf-helper{color:rgba(206,226,244,.62)}
+.nf-hero .nf-button{background:linear-gradient(135deg,#218cff,#1358dc);border-color:rgba(143,210,255,.28);box-shadow:0 16px 38px rgba(0,93,255,.3),inset 0 1px 0 rgba(255,255,255,.2)}
+.nf-hero .nf-button-secondary{color:#eef8ff;background:rgba(8,30,60,.38);border-color:rgba(166,214,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(18px)}
+.nf-hero .nf-button-secondary:hover{background:rgba(19,57,99,.56);border-color:rgba(166,214,255,.38)}
+.nf-hero-demo{filter:drop-shadow(0 35px 70px rgba(0,4,18,.35))}
+.nf-hero .nf-demo-panel{border:1px solid rgba(168,218,255,.22);background:linear-gradient(145deg,rgba(18,50,84,.52),rgba(3,18,42,.68));backdrop-filter:blur(28px) saturate(135%);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 70px rgba(37,133,255,.06),0 35px 90px rgba(0,3,15,.48)}
+.nf-hero .nf-demo-steps span{color:rgba(214,233,249,.65);background:rgba(9,30,57,.52);border-color:rgba(155,210,255,.18);backdrop-filter:blur(14px)}
+.nf-hero .nf-demo-steps span.active{color:#fff;background:rgba(22,116,240,.82);border-color:rgba(135,208,255,.45);box-shadow:0 0 24px rgba(35,145,255,.32)}
+.nf-hero .nf-demo-steps i{background:rgba(139,201,255,.28)}
+.nf-hero .nf-demo-content h3,.nf-hero .nf-demo-fields b{color:#f3f9ff}
+.nf-hero .nf-sample{color:#9bd8ff;background:rgba(24,112,210,.2);border-color:rgba(129,205,255,.2)}
+.nf-hero .nf-demo-fields span,.nf-hero .nf-reason{color:rgba(208,229,247,.66);background:rgba(5,22,47,.5);border-color:rgba(145,205,255,.14)}
+.nf-hero .nf-floating-card{color:#edf8ff;background:rgba(7,27,56,.56);border-color:rgba(159,214,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 22px 55px rgba(0,4,18,.38);backdrop-filter:blur(22px)}
+.nf-hero .nf-floating-card small{color:#8fd2ff}
+.nf-hero .nf-tier-row span{border-color:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.nf-hero .reach{background:rgba(194,65,12,.2);color:#fdba74}.nf-hero .target{background:rgba(29,78,216,.28);color:#93c5fd}.nf-hero .safety{background:rgba(4,120,87,.22);color:#6ee7b7}
+
+@media(max-width:896px){
+  .nf-header-over-hero .nf-mobile-menu{background:rgba(3,14,32,.94);border-color:rgba(159,214,255,.16);backdrop-filter:blur(24px)}
+  .nf-header-over-hero .nf-mobile-menu button{color:#dceeff}
+  .nf-hero,.nf-hero-grid{min-height:auto}
+  .nf-hero{background-position:58% center}
+  .nf-hero-grid{grid-template-columns:1fr;padding:74px 0 126px;gap:44px}
+}
+@media(max-width:560px){
+  .nf-hero{background-position:61% center}
+  .nf-hero:before{background:linear-gradient(180deg,rgba(1,8,20,.76),rgba(2,10,24,.72) 52%,rgba(1,7,18,.85))}
+  .nf-hero:after{height:105px}
+  .nf-hero-grid{padding:54px 0 105px}
+  .nf-hero h1{font-size:40px;line-height:1.02}
+}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -19,6 +19,7 @@ import brandLogo from "../assets/brand-logo3.png";
 import kairosBanner from "../assets/kairos.png";
 import kimYoonHwanBanner from "../assets/kimyoonhwan.png";
 import nonsulLearnBanner from "../assets/nonsullearn.png";
+import heroBackground from "../../Animate_this_exact_imagedo_not_redesign_or.gif";
 import "./LandingPage.css";
 
 const universities = [
@@ -59,6 +60,7 @@ export default function LandingPage() {
   const [math, setMath] = useState(4);
   const [grades, setGrades] = useState({ school: "3.4", korean: 2, math: 4, english: 2, track: "인문사회" });
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [navOverHero, setNavOverHero] = useState(true);
 
   const login = () => navigate("/login");
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -80,6 +82,20 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
+    const updateNavSurface = () => {
+      const heroBottom = heroRef.current?.getBoundingClientRect().bottom ?? 0;
+      setNavOverHero(heroBottom > 78);
+    };
+    updateNavSurface();
+    window.addEventListener("scroll", updateNavSurface, { passive: true });
+    window.addEventListener("resize", updateNavSurface);
+    return () => {
+      window.removeEventListener("scroll", updateNavSurface);
+      window.removeEventListener("resize", updateNavSurface);
+    };
+  }, []);
+
+  useEffect(() => {
     const revealObserver = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("is-visible")), { threshold: 0.12 });
     document.querySelectorAll(".nf-reveal").forEach((element) => revealObserver.observe(element));
     const heroObserver = new IntersectionObserver(([entry]) => setStickyVisible(!entry.isIntersecting), { threshold: 0.1 });
@@ -92,7 +108,7 @@ export default function LandingPage() {
   return (
     <div className="nf-page">
       <div className="nf-announcement">2027학년도 논술 전형 데이터를 반영한 지원 전략 분석을 시작했습니다.<button onClick={login}>2027 전형 확인하기 <ArrowRight size={14} /></button></div>
-      <header className="nf-header">
+      <header className={`nf-header ${navOverHero ? "nf-header-over-hero" : ""}`}>
         <div className="nf-container nf-nav">
           <button className="nf-logo" onClick={() => scrollTo("top")} aria-label="논술핏 홈"><span><img src={brandLogo} alt="논술핏" /></span><small>데이터 기반 논술 지원 전략</small></button>
           <nav className="nf-nav-links" aria-label="주요 메뉴"><button onClick={() => scrollTo("problem")}>서비스 소개</button><button onClick={() => scrollTo("report")}>분석 리포트</button><button onClick={() => scrollTo("cases")}>지원 사례</button><button onClick={() => scrollTo("process")}>이용 방법</button><button onClick={() => scrollTo("faq")}>자주 묻는 질문</button></nav>
@@ -103,7 +119,7 @@ export default function LandingPage() {
       </header>
 
       <main>
-        <section className="nf-hero" id="top" ref={heroRef}>
+        <section className="nf-hero" id="top" ref={heroRef} style={{ "--nf-hero-background": `url(${heroBackground})` } as CSSProperties}>
           <div className="nf-container nf-hero-grid">
             <div className="nf-reveal"><span className="nf-eyebrow">논술 지원 전략 분석 리포트</span><h1><span className="sr-only">논술핏: </span>논술 지원,<br />이제는 감이 아니라<br /><em>근거입니다.</em></h1><p>성적, 논술 역량, 수능 최저, 대학별 전형을 함께 분석해<br className="desktop-only" /><br />지원 가능한 대학과<br />왜 그 대학이 유리한지,<br />무엇을 먼저 보완해야 하는지까지 알려드립니다.</p><div className="nf-actions"><button className="nf-button" onClick={login}>내 지원 전략 무료로 확인하기 <ArrowRight size={18} /></button><button className="nf-button nf-button-secondary" onClick={() => scrollTo("report")}>실제 리포트 먼저 보기</button></div><small className="nf-helper">약 3분 소요 · 추천 근거 포함 · 6개 지원 조합 제공</small></div>
             <div className="nf-hero-demo nf-reveal" aria-live="polite">
