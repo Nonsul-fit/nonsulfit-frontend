@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import "./App.css";
 import { AnalysisProvider } from "./context/AnalysisContext";
 import { FormProvider } from "./context/FormContext";
 import MainLayout from "./layouts/MainLayout";
