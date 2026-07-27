@@ -96,3 +96,41 @@ client는 계약과 일치하므로 변경하지 않았다.
 - TypeScript build 통과
 - 변경 파일 ESLint 통과
 - `git diff --check` 통과
+
+## Request Method 추가 감사
+
+감사일: 2026-07-27
+
+로컬 `/step02`에서 실제 `File`을 선택하고 **불러오기 버튼을 클릭한 요청**의
+`XMLHttpRequest.open`을 기록했다.
+
+```text
+method: POST
+url: https://nonsulfit-backend-python-production.up.railway.app/api/v1/nonsulfit/input/csv?triggerAnalysis=false
+```
+
+호출 스택은 다음 순서였다.
+
+```text
+Step02.handleCsvUpload
+→ uploadCsvInput
+→ Axios.dispatchRequest
+→ Axios xhr adapter
+→ XMLHttpRequest.open("POST", URL)
+```
+
+코드 검색 결과 CSV endpoint를 참조하는 실행 호출은
+`src/api/csvInput.ts`의 `api.post(...)` 한 곳뿐이다. CSV endpoint를 대상으로
+하는 `api.get`, native `fetch`, `axios.get` 호출은 없다. 버튼은
+`type="button"`이고 `onClick={handleCsvUpload}`이므로 form submit 또는 문서
+navigation도 발생시키지 않는다.
+
+브라우저 주소창에 API URL을 입력하거나 링크로 직접 열면 브라우저 document
+navigation의 기본 method인 GET이 전송된다. 이 GET은 백엔드의 POST-only
+endpoint에서 `METHOD_NOT_ALLOWED`가 되는 것이 정상이다. 버튼 클릭 요청과
+주소창/Console에서 URL을 연 요청은 URL만 같고 서로 다른 HTTP 요청이다.
+
+따라서 관측된 `METHOD_NOT_ALLOWED(GET)`의 Root Cause는 CSV 업로드 코드가
+GET을 호출한 것이 아니라 API URL을 직접 연 별도 GET navigation이다. 실제
+업로드 요청은 POST임이 런타임 method와 호출 스택으로 확인됐다. 프론트 기능
+수정은 필요하지 않다.

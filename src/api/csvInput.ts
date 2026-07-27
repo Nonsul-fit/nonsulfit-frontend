@@ -10,6 +10,7 @@ export async function uploadCsvInput(file: File): Promise<CsvUploadResponse> {
   const body = new FormData();
   body.append("file", file);
   const response = await api.post<unknown>("/api/v1/nonsulfit/input/csv", body, {
+    headers: { "Content-Type": undefined },
     params: { triggerAnalysis: false },
   });
   return csvUploadMapper(response.data);

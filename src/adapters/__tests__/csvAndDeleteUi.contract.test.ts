@@ -9,6 +9,7 @@ test("CSV upload uses the authenticated client, exact route, file field and no a
   const api = source("api/csvInput.ts");
   assert.match(api, /body\.append\("file", file\)/);
   assert.match(api, /api\.post<unknown>\("\/api\/v1\/nonsulfit\/input\/csv"/);
+  assert.match(api, /headers: \{ "Content-Type": undefined \}/);
   assert.match(api, /triggerAnalysis: false/);
 });
 
