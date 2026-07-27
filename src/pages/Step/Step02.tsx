@@ -9,9 +9,15 @@ const Step02 = () => {
   const { validateRequired } = useFormValidation();
 
   const { essayInfo, setEssayInfo } = useFormContext();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "selected" | "uploading" | "success" | "error"
+  >("idle");
+  const [uploadMessage, setUploadMessage] = useState("");
 
   const handleUpdate = (field: string, val: string | number) => {
-    setEssayInfo((prev: any) => ({ ...prev, [field]: val }));
+    setEssayInfo((prev: typeof essayInfo) => ({ ...prev, [field]: val }));
   };
 
   const handleNextStep = () => {
@@ -31,6 +37,52 @@ const Step02 = () => {
       "정확한 분석을 위해 모든 역량 점수와 선호 유형을 선택해 주세요.",
     );
   };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setUploadMessage("");
+    if (!file) {
+      setCsvFile(null);
+      setUploadStatus("idle");
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      setCsvFile(null);
+      setUploadStatus("error");
+      setUploadMessage("CSV 파일만 업로드할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+    setCsvFile(file);
+    setUploadStatus("selected");
+  };
+
+  const handleCsvUpload = async () => {
+    if (!csvFile || uploadStatus === "uploading") return;
+    setUploadStatus("uploading");
+    setUploadMessage("CSV 파일을 불러오는 중입니다.");
+    try {
+      const values = selectCsvCompetency(await uploadCsvInput(csvFile));
+      setEssayInfo((prev: typeof essayInfo) => ({
+        ...prev,
+        reading: String(values.reading),
+        content_understanding: String(values.contentUnderstanding),
+        prompt_understanding: String(values.promptUnderstanding),
+        structure: String(values.structure),
+        expression: String(values.expression),
+      }));
+      setUploadStatus("success");
+      setUploadMessage(
+        "CSV에서 논술 역량 점수를 불러왔습니다. 내용을 확인한 뒤 수정할 수 있습니다.",
+      );
+    } catch (error) {
+      setUploadStatus("error");
+      setUploadMessage(getCsvUploadErrorMessage(error));
+    } finally {
+      setCsvFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
   return (
     <div className="mx-auto max-w-4xl">
       <StepHeader
@@ -46,6 +98,59 @@ const Step02 = () => {
           icon="📊"
           badge="❗️문항당 100점 만점 기준"
         >
+          <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h3 className="font-extrabold text-gray-800">CSV로 불러오기</h3>
+                <p className="mt-1 text-sm leading-6 text-gray-600">
+                  첨삭 결과 CSV를 업로드하면 독해·내용 이해·논제 이해·구조·표현
+                  점수가 자동 입력됩니다.
+                </p>
+                <label
+                  htmlFor="essay-csv-file"
+                  className="mt-3 inline-block text-sm font-bold text-primary"
+                >
+                  CSV 파일 선택
+                </label>
+                <input
+                  ref={fileInputRef}
+                  id="essay-csv-file"
+                  type="file"
+                  accept=".csv,text/csv"
+                  disabled={uploadStatus === "uploading"}
+                  onChange={handleFileChange}
+                  className="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-bold file:text-primary disabled:opacity-50"
+                  aria-describedby="essay-csv-help essay-csv-status"
+                />
+                <p id="essay-csv-help" className="mt-1 text-xs text-gray-500">
+                  .csv 형식, 최대 1MB
+                </p>
+                {csvFile && (
+                  <p className="mt-2 text-sm font-semibold text-gray-700">
+                    선택된 파일: {csvFile.name}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                disabled={!csvFile || uploadStatus === "uploading"}
+                onClick={handleCsvUpload}
+                className="shrink-0 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {uploadStatus === "uploading" ? "불러오는 중..." : "불러오기"}
+              </button>
+            </div>
+            <p
+              id="essay-csv-status"
+              role={uploadStatus === "error" ? "alert" : "status"}
+              aria-live="polite"
+              className={`mt-3 text-sm font-semibold ${
+                uploadStatus === "error" ? "text-red-600" : "text-emerald-700"
+              }`}
+            >
+              {uploadMessage}
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { key: "reading", label: "독해력" },
@@ -131,3 +236,9 @@ const Step02 = () => {
 };
 
 export default Step02;
+import { useRef, useState } from "react";
+import { selectCsvCompetency } from "../../adapters/csvUploadMapper";
+import {
+  getCsvUploadErrorMessage,
+  uploadCsvInput,
+} from "../../api/csvInput";

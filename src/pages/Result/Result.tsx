@@ -19,12 +19,20 @@ import ChatBtn from "../../components/organisms/ChatBtn";
 import { ContractError } from "../../errors/contractErrors";
 import type { ReportId } from "../../types/identifiers";
 import type { RecommendedProgramItem } from "../../types/reportPayloadV2";
+import DeleteReportModal from "../../components/molecules/result/DeleteReportModal";
+import {
+  deleteReport,
+  getDeleteReportErrorMessage,
+} from "../../api/reports";
 
 const Result = () => {
   const navigate = useNavigate();
   const { reportId } = useParams<{ reportId: ReportId }>();
 
   const [activeIdx, setActiveIdx] = useState<number>(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const { result, isLoading, networkError } = useNonsulResult(reportId ?? "");
   const generatedReportV2 = result?.data ?? null;
@@ -53,13 +61,45 @@ const Result = () => {
   const resolvedActiveIdx = recommendedPrograms[activeIdx] ? activeIdx : 0;
   const currentProgram = recommendedPrograms[resolvedActiveIdx] ?? null;
 
+  const handleDelete = async () => {
+    if (isDeleting || !reportId) return;
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteReport(reportId);
+      navigate("/result", { replace: true, state: { reportDeleted: true } });
+    } catch (error) {
+      setDeleteError(getDeleteReportErrorMessage(error));
+      setIsDeleteModalOpen(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!reportId) {
     return null;
   }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16 relative">
-      <ResultHeader count={count} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex-1"><ResultHeader count={count} /></div>
+        <button
+          type="button"
+          onClick={() => {
+            setDeleteError("");
+            setIsDeleteModalOpen(true);
+          }}
+          className="self-start rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+        >
+          리포트 삭제
+        </button>
+      </div>
+      {deleteError && (
+        <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+          {deleteError}
+        </p>
+      )}
 
       {result?.status === "partial" && (
         <ReportPartialState errors={result.errors} />
@@ -134,6 +174,12 @@ const Result = () => {
       )}
 
       <ChatBtn reportId={reportId} />
+      <DeleteReportModal
+        isOpen={isDeleteModalOpen}
+        isDeleting={isDeleting}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

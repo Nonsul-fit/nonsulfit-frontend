@@ -1,18 +1,30 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { fetchReportList } from "../../api/reports";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  deleteReport,
+  fetchReportList,
+  getDeleteReportErrorMessage,
+} from "../../api/reports";
 import Card from "../../components/atoms/Card";
 import ContractErrorState from "../../components/organisms/common/ContractErrorState";
 import ReportEmptyState from "../../components/organisms/result/ReportEmptyState";
 import type { ReportListItem } from "../../contracts/reportList";
 import { ContractError } from "../../errors/contractErrors";
 import type { ReportId } from "../../types/identifiers";
+import { selectDeleteReportIdentifier } from "../../types/identifiers";
+import DeleteReportModal from "../../components/molecules/result/DeleteReportModal";
 
 const ResultList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [list, setList] = useState<ReportListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [contractError, setContractError] = useState<ContractError | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ReportListItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [notice, setNotice] = useState(
+    location.state?.reportDeleted ? "리포트가 삭제되었습니다." : "",
+  );
 
   useEffect(() => {
     const fetchList = async () => {
@@ -53,6 +65,25 @@ const ResultList = () => {
     };
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget || isDeleting) return;
+    const identifier = selectDeleteReportIdentifier(deleteTarget);
+    if (identifier === null) return;
+    setIsDeleting(true);
+    try {
+      await deleteReport(identifier);
+      setList((current) =>
+        current.filter((report) => report.reportId !== deleteTarget.reportId),
+      );
+      setDeleteTarget(null);
+      setNotice("리포트가 삭제되었습니다.");
+    } catch (error) {
+      setNotice(getDeleteReportErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 text-left">
       <div className="space-y-1.5 pb-2">
@@ -63,6 +94,11 @@ const ResultList = () => {
           그동안 진단받은 논술 합격 예측 리포트 목록입니다.
         </p>
       </div>
+      {notice && (
+        <p role="status" aria-live="polite" className="rounded-lg bg-slate-100 px-4 py-3 text-sm font-bold text-gray-700">
+          {notice}
+        </p>
+      )}
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 bg-white rounded-xl border border-dashed shadow-sm  border-gray-200">
@@ -113,10 +149,24 @@ const ResultList = () => {
                   </h4>
                 </div>
 
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-primary group-hover:text-white text-gray-400 transition-all duration-300 shadow-inner">
-                  <span className="font-black text-sm transform group-hover:translate-x-0.5 transition-transform">
-                    ➔
-                  </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setNotice("");
+                      setDeleteTarget(report);
+                    }}
+                    className="rounded-lg px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+                    aria-label={`${mainTitle} 영구 삭제`}
+                  >
+                    삭제
+                  </button>
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-primary group-hover:text-white text-gray-400 transition-all duration-300 shadow-inner">
+                    <span className="font-black text-sm transform group-hover:translate-x-0.5 transition-transform">
+                      ➔
+                    </span>
+                  </div>
                 </div>
               </Card>
             );
@@ -130,6 +180,13 @@ const ResultList = () => {
           onAction={() => navigate("/home")}
         />
       )}
+      <DeleteReportModal
+        isOpen={deleteTarget !== null}
+        reportLabel={deleteTarget ? getFormattedDateTime(deleteTarget).mainTitle : undefined}
+        isDeleting={isDeleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };
