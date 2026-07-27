@@ -9,7 +9,7 @@ import api from "./axios";
 export async function uploadCsvInput(file: File): Promise<CsvUploadResponse> {
   const body = new FormData();
   body.append("file", file);
-  const response = await api.post<unknown>("/nonsulfit/input/csv", body, {
+  const response = await api.post<unknown>("/api/v1/nonsulfit/input/csv", body, {
     params: { triggerAnalysis: false },
   });
   return csvUploadMapper(response.data);
