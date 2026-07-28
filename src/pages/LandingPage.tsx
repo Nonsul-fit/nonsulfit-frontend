@@ -24,8 +24,8 @@ import heroBackgroundWebm from "../assets/hero-background.webm";
 import "./LandingPage.css";
 
 const universities = [
-  { tier: "상향", badge: "도전 가능", name: "성균관대학교", major: "사회과학계열", fit: "높음", minimum: "주의", record: "낮음", reason: "자료해석과 통합교과형 사고력이 출제 유형과 잘 맞습니다.", risk: "수능 최저 조합이 성적 변동성에 민감합니다.", advantage: "자료해석과 제시문 비교·분석 능력", priority: "자료해석 정확도 향상과 쟁점별 논증 구조 훈련" },
-  { tier: "상향", badge: "도전 가능", name: "중앙대학교", major: "공공인재학부", fit: "높음", minimum: "주의", record: "보통", reason: "제시문 요약과 사실 기반 논증 능력이 출제 유형과 잘 맞습니다.", risk: "수학 최저 변동성으로 상향 카드로 분류됩니다.", advantage: "핵심 내용 요약 및 평가·대안 제시 능력", priority: "요약 정확도와 논증 구조 완성도 향상" },
+  { tier: "상향", badge: "도전 가능", name: "성균관대학교", major: "사회과학계열", fit: "높음", minimum: "주의", record: "낮음", reason: "제시문 분류와 비교, 자료 해석, 비판적 논증 역량이 성균관대 언어형 논술 구조와 잘 맞습니다.", risk: "수능 최저 조합이 성적 변동성에 민감합니다.", advantage: "자료해석과 제시문 비교·분석 능력", priority: "자료해석 정확도 향상과 쟁점별 논증 구조 훈련" },
+  { tier: "상향", badge: "도전 가능", name: "중앙대학교", major: "공공인재학부", fit: "높음", minimum: "주의", record: "보통", reason: "제시문 비교·통합과 적용·평가형 답안 역량이 인문사회 언어논술 구조와 잘 맞습니다.", risk: "수학 최저 변동성으로 상향 카드로 분류됩니다.", advantage: "핵심 내용 요약 및 평가·대안 제시 능력", priority: "요약 정확도와 논증 구조 완성도 향상" },
   { tier: "적정", badge: "가장 추천", name: "한국외국어대학교", major: "LT학부", fit: "높음", minimum: "보통", record: "낮음", reason: "영어 제시문 강점을 가장 잘 활용할 수 있는 적정 지원 카드입니다.", risk: "영어 등급이 하락하면 최저 안정도가 낮아질 수 있습니다.", advantage: "영어 독해와 핵심 문장 요약", priority: "영어 제시문 요약과 지문 관계 분석" },
   { tier: "적정", badge: "가장 추천", name: "건국대학교", major: "행정학과", fit: "보통", minimum: "보통", record: "낮음", reason: "학생부 감점 부담이 낮고 논술 유형도 현재 강점과 잘 맞습니다.", risk: "경쟁률 상승 시 논술 점수 영향이 커질 수 있습니다.", advantage: "낮은 학생부 실질 감점", priority: "시간 내 전체 문항 대응률 높이기" },
   { tier: "안정", badge: "안정 카드", name: "숭실대학교", major: "법학과", fit: "높음", minimum: "안정", record: "낮음", reason: "현재 성적과 최저 조합이 안정적이며 논술 유형도 무리 없이 대응 가능합니다.", risk: "시험 당일 시간 관리 위험은 남아 있습니다.", advantage: "최저 안정성과 낮은 학생부 영향", priority: "실전 시간 배분을 고정하는 훈련" },
