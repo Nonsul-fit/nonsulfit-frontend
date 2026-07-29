@@ -19,8 +19,7 @@ import brandLogo from "../assets/brand-logo3.png";
 import kairosBanner from "../assets/kairos.png";
 import kimYoonHwanBanner from "../assets/kimyoonhwan.png";
 import nonsulLearnBanner from "../assets/nonsullearn.png";
-import heroBackgroundMp4 from "../assets/hero-background.mp4";
-import heroBackgroundWebm from "../assets/hero-background.webm";
+import heroBackgroundMp4 from "../assets/Blue_ink_billowing_underwater_202607291603.mp4";
 import "./LandingPage.css";
 
 const universities = [
@@ -164,7 +163,6 @@ export default function LandingPage() {
             aria-hidden="true"
             tabIndex={-1}
           >
-            <source src={heroBackgroundWebm} type="video/webm; codecs=vp9" />
             <source src={heroBackgroundMp4} type="video/mp4; codecs=avc1.640029" />
           </video>
           <div className="nf-container nf-hero-grid">
