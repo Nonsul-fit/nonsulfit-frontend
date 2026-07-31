@@ -56,9 +56,13 @@ export interface RecommendationSummarySection extends SectionFallbackFields {
 
 export interface RecommendedProgramItem extends SectionFallbackFields {
   programId: string;
+  selectionRank?: number | null;
   universityName: string;
   departmentName: string;
   displayBucket: DisplayBucket;
+  originalApplicationPosition: string | null;
+  originalDisplayBucket: string | null;
+  placementReason: string | null;
   category: ProgramCategory;
   finalScore?: number;
   successRateEstimate?: number | null;

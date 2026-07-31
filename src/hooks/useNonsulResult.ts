@@ -74,6 +74,7 @@ export function useNonsulResult(reportId: string): {
     const fetchBackendData = async () => {
       setIsLoading(true);
       setNetworkError(null);
+      setResult(null);
 
       try {
         if (!reportId) {

@@ -6,6 +6,10 @@
         "programId": "object-safety",
         "universityName": "오브젝트대",
         "departmentName": "문헌정보학과",
+        "displayBucket": "stable",
+        "originalApplicationPosition": null,
+        "originalDisplayBucket": null,
+        "placementReason": null,
         "finalScore": 80
       }
     ],

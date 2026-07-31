@@ -4,6 +4,7 @@ import type {
   ConsultantSummarySection,
   RecommendedProgramItem,
 } from "../../../types/reportPayloadV2";
+import { getPlacementReasonText } from "../../../presenters/recommendationPresentation";
 
 interface EvaluationReportProps {
   currentUniversity: RecommendedProgramItem | null;
@@ -36,8 +37,7 @@ const EvaluationReport = ({
   };
   const summary = legacyProgram.summary ?? {};
   const strategyNotes = consultantSummary?.strategyNotes ?? [];
-  const overallComment =
-    currentUniversity.rationale ?? consultantSummary?.overallComment;
+  const placementReason = currentUniversity.placementReason;
   const insightText =
     currentUniversity.keyInsight ?? consultantSummary?.overallComment;
   const strategyText =
@@ -90,7 +90,7 @@ const EvaluationReport = ({
               대학교 선정 이유
             </h4>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm font-bold text-gray-700 leading-relaxed break-keep">
-              {overallComment || "선정 이유 정보가 없습니다."}
+              {getPlacementReasonText(placementReason)}
             </div>
           </section>
 

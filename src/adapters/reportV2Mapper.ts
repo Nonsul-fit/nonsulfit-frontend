@@ -42,14 +42,6 @@ interface LegacyResultItem {
   program?: LegacyProgram | null;
 }
 
-const portfolioDisplayBucket: Record<PortfolioBucketName, DisplayBucket> = {
-  safety: "stable",
-  match: "target",
-  reach: "reach",
-};
-
-const portfolioNames: PortfolioBucketName[] = ["safety", "match", "reach"];
-
 export function extractReportV2Body(rawResponse: unknown): unknown {
   const response = toRecord(rawResponse);
   return (
@@ -81,11 +73,8 @@ export function reportV2Mapper(rawBody: unknown): ReportMappingResult {
     read(source, "portfolioStrategy"),
     errors,
   );
-  const portfolioDisplayByProgramId =
-    createPortfolioDisplayLookup(portfolioStrategy);
   const recommendedPrograms = normalizeRecommendedPrograms(
     read(source, "recommendedPrograms"),
-    portfolioDisplayByProgramId,
     errors,
   );
 
@@ -164,7 +153,6 @@ const normalizeReportPayloadV2 = (payload: ReportPayloadV2): ReportPayloadV2 => 
 
 const normalizeRecommendedPrograms = (
   value: unknown,
-  portfolioDisplayByProgramId: Map<string, DisplayBucket>,
   errors: MutableReportMappingError[],
 ): RecommendedProgramItem[] => {
   if (!Array.isArray(value)) return [];
@@ -182,11 +170,47 @@ const normalizeRecommendedPrograms = (
     const programId = toRequiredString(read(program, "programId"));
     const universityName = toRequiredString(read(program, "universityName"));
     const departmentName = toRequiredString(read(program, "departmentName"));
+    const displayBucket = toDisplayBucket(read(program, "displayBucket"));
+    const canonicalFields = [
+      "originalApplicationPosition",
+      "originalDisplayBucket",
+      "placementReason",
+    ] as const;
+    const missingCanonicalFields = canonicalFields.filter(
+      (field) => !hasField(program, field),
+    );
 
-    if (!programId || !universityName || !departmentName) {
+    if (
+      !programId ||
+      !universityName ||
+      !departmentName ||
+      !displayBucket ||
+      missingCanonicalFields.length > 0
+    ) {
       errors.push({
         path: `recommendedPrograms.${index}`,
-        message: "programId, universityName, and departmentName are required",
+        message:
+          "programId, universityName, departmentName, displayBucket, originalApplicationPosition, originalDisplayBucket, and placementReason are required",
+      });
+      return [];
+    }
+
+    const originalApplicationPosition = toNullableString(
+      read(program, "originalApplicationPosition"),
+    );
+    const originalDisplayBucket = toNullableString(
+      read(program, "originalDisplayBucket"),
+    );
+    const placementReason = toNullableString(read(program, "placementReason"));
+
+    if (
+      originalApplicationPosition === undefined ||
+      originalDisplayBucket === undefined ||
+      placementReason === undefined
+    ) {
+      errors.push({
+        path: `recommendedPrograms.${index}`,
+        message: "canonical projection fields must be strings or null",
       });
       return [];
     }
@@ -197,11 +221,10 @@ const normalizeRecommendedPrograms = (
         programId,
         universityName,
         departmentName,
-        displayBucket:
-          toDisplayBucket(read(program, "displayBucket")) ??
-          portfolioDisplayByProgramId.get(programId) ??
-          toDisplayBucket(read(objectOrEmpty(program.metadata), "displayBucket")) ??
-          "target",
+        displayBucket,
+        originalApplicationPosition,
+        originalDisplayBucket,
+        placementReason,
         category: toCategory(program.category),
         finalScore: toNumber(read(program, "finalScore")) ?? 0,
         successRateEstimate:
@@ -268,22 +291,6 @@ const normalizeBucketStrategy = (
   programIds: arrayOrEmpty(read(objectOrEmpty(bucket), "programIds")).map(String),
 });
 
-const createPortfolioDisplayLookup = (
-  portfolioStrategy: ReportPayloadV2["portfolioStrategy"],
-): Map<string, DisplayBucket> => {
-  const lookup = new Map<string, DisplayBucket>();
-
-  for (const name of portfolioNames) {
-    for (const programId of portfolioStrategy[name].programIds) {
-      if (!lookup.has(programId)) {
-        lookup.set(programId, portfolioDisplayBucket[name]);
-      }
-    }
-  }
-
-  return lookup;
-};
-
 const emptyPortfolioStrategy = (): ReportPayloadV2["portfolioStrategy"] => ({
   safety: { programIds: [] },
   match: { programIds: [] },
@@ -324,6 +331,9 @@ const mapLegacyResultToReportPayloadV2 = (response: unknown): ReportPayloadV2 =>
         universityName,
         departmentName,
         displayBucket,
+        originalApplicationPosition: null,
+        originalDisplayBucket: null,
+        placementReason: null,
         category: (item.category ?? "MODERATE") as ProgramCategory,
         finalScore: item.totalScore,
         successRateEstimate: null,
@@ -384,7 +394,21 @@ const isLegacyResult = (body: unknown): boolean =>
 const read = (
   record: Record<string, unknown> | null | undefined,
   camelKey: string,
-): unknown => record?.[camelKey] ?? record?.[toSnakeCase(camelKey)];
+): unknown => {
+  if (!record) return undefined;
+  if (Object.prototype.hasOwnProperty.call(record, camelKey)) {
+    return record[camelKey];
+  }
+
+  return record[toSnakeCase(camelKey)];
+};
+
+const hasField = (
+  record: Record<string, unknown>,
+  camelKey: string,
+): boolean =>
+  Object.prototype.hasOwnProperty.call(record, camelKey) ||
+  Object.prototype.hasOwnProperty.call(record, toSnakeCase(camelKey));
 
 const toSnakeCase = (value: string): string =>
   value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -478,6 +502,9 @@ const toRequiredString = (value: unknown): string | undefined => {
   if (typeof value === "number") return String(value);
   return undefined;
 };
+
+const toNullableString = (value: unknown): string | null | undefined =>
+  value === null || typeof value === "string" ? value : undefined;
 
 const toNumber = (value: unknown): number | undefined => {
   if (typeof value === "number" && Number.isFinite(value)) return value;

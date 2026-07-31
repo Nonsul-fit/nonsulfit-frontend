@@ -6,6 +6,10 @@
         "programId": "array-match",
         "universityName": "배열대",
         "departmentName": "사회학과",
+        "displayBucket": "target",
+        "originalApplicationPosition": null,
+        "originalDisplayBucket": null,
+        "placementReason": null,
         "finalScore": 75
       }
     ],
