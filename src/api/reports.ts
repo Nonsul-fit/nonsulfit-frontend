@@ -5,11 +5,24 @@ import type { ReportMappingResult } from "../contracts/reportResponse";
 import type { DeleteReportIdentifier, ReportId } from "../types/identifiers";
 import api from "./axios";
 import axios from "axios";
+import { getAccessToken } from "../utils/authStorage";
+
+export class ReportAuthenticationRequiredError extends Error {
+  constructor() {
+    super("Report authentication is required");
+    this.name = "ReportAuthenticationRequiredError";
+  }
+}
+
+const requireReportAccessToken = () => {
+  if (!getAccessToken()) throw new ReportAuthenticationRequiredError();
+};
 
 export async function fetchReportList(params?: {
   page?: number;
   pageSize?: number;
 }): Promise<NormalizedReportList> {
+  requireReportAccessToken();
   const response = await api.get<unknown>("/reports", { params });
   return reportListMapper(response.data);
 }
@@ -17,6 +30,7 @@ export async function fetchReportList(params?: {
 export async function fetchReportDetail(
   reportId: ReportId,
 ): Promise<ReportMappingResult> {
+  requireReportAccessToken();
   const response = await api.get<unknown>(
     `/reports/${encodeURIComponent(reportId)}`,
   );

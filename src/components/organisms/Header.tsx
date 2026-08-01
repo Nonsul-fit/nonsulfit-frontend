@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import brandLogo2 from "../../assets/brand-logo3.png";
+import { useAuth } from "../../context/AuthContext";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLoggedIn(!!token);
-  }, [location]);
+    setIsLoggedIn(isAuthenticated);
+  }, [isAuthenticated, location]);
 
   const handleAuthAction = () => {
     if (isLoggedIn) {
-      localStorage.clear();
+      logout();
       setIsLoggedIn(false);
       alert("로그아웃 되었습니다.");
       navigate("/login");

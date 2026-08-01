@@ -6,11 +6,13 @@ import Input from "../../components/atoms/Input";
 import { useForm } from "../../hooks/useForm";
 import AuthLayout from "../../layouts/AuthLayout";
 import { getSafePostLoginPath } from "../../utils/authRedirect";
+import { useAuth } from "../../context/AuthContext";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
   const { values, handleChange } = useForm({
     email: "",
@@ -36,9 +38,7 @@ const LoginPage = () => {
       });
 
       const { accessToken, refreshToken, user } = response.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("user", JSON.stringify(user));
+      login(accessToken, refreshToken, user);
 
       alert(`${user.name}님, 환영합니다!`);
       navigate(getSafePostLoginPath(searchParams.get("redirect")), {

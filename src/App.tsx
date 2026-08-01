@@ -33,10 +33,9 @@ function App() {
                 <Route path="/step02" element={<Step02 />} />
                 <Route path="/step03" element={<Step03 />} />
                 <Route path="/loading" element={<LoadingPage />} />
-                <Route path="/result" element={<ResultList />} />
-                <Route path="/result/:reportId" element={<Result />} />
-
                 <Route element={<ProtectedRoute />}>
+                  <Route path="/result" element={<ResultList />} />
+                  <Route path="/result/:reportId" element={<Result />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/payment/success" element={<SuccessPage />} />
                 </Route>

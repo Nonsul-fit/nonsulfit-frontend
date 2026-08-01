@@ -1,4 +1,14 @@
 import axios from "axios";
+import type { AxiosError, InternalAxiosRequestConfig } from "axios";
+import {
+  clearAuthStorage,
+  getAccessToken,
+  getRefreshToken,
+  storeAuthTokens,
+} from "../utils/authStorage.ts";
+import { shouldRefreshAccessToken } from "../utils/authRetry";
+
+type RetryableRequest = InternalAxiosRequestConfig & { _retry?: boolean };
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -18,7 +28,7 @@ const isAuthExcludedUrl = (url?: string) =>
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
 
     if (token && !isAuthExcludedUrl(config.url)) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,18 +43,18 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryableRequest | undefined;
 
     if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
+      originalRequest &&
+      shouldRefreshAccessToken(error, originalRequest._retry === true) &&
       !isAuthExcludedUrl(originalRequest.url)
     ) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
+        const refreshToken = getRefreshToken();
 
         if (!refreshToken) {
           throw new Error("리프레시 토큰이 없습니다.");
@@ -60,14 +70,19 @@ api.interceptors.response.use(
           },
         );
 
-        const newAccessToken = response.data.accessToken;
-        localStorage.setItem("accessToken", newAccessToken);
+        const newAccessToken = response.data?.accessToken;
+        if (typeof newAccessToken !== "string" || !newAccessToken) {
+          throw new Error("새 액세스 토큰이 없습니다.");
+        }
+        storeAuthTokens(newAccessToken, refreshToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
-        localStorage.clear();
+        clearAuthStorage();
+        if (typeof alert === "function") {
+          alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
+        }
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }

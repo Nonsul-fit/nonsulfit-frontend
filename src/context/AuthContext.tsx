@@ -1,4 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  AUTH_USER_KEY,
+  clearAuthStorage,
+  getAccessToken,
+  storeAuthTokens,
+} from "../utils/authStorage";
 
 interface User {
   id: string;
@@ -21,29 +27,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const savedUser = localStorage.getItem("user");
+    const token = getAccessToken();
+    const savedUser = localStorage.getItem(AUTH_USER_KEY);
 
     if (token && savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
         console.error("유저 정보 복구 실패:", error);
-        localStorage.clear();
+        clearAuthStorage();
       }
     }
     setIsLoading(false); // 체크 끝났으니 로딩 종료
   }, []);
 
   const login = (accessToken: string, refreshToken: string, userData: User) => {
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-    localStorage.setItem("user", JSON.stringify(userData));
+    storeAuthTokens(accessToken, refreshToken);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userData));
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.clear();
+    clearAuthStorage();
     setUser(null);
   };
 
