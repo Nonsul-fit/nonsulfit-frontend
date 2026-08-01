@@ -1,7 +1,7 @@
 interface SelectionCardProps {
   title: string;
   icon?: string;
-  options: string[];
+  options: Array<string | { label: string; value: string }>;
   value: string;
   onChange: (val: string) => void;
 }
@@ -38,12 +38,14 @@ const SelectionCard = ({
       {/* 옵션 버튼 그리드 */}
       <div className={`grid grid-cols-1 gap-2.5 sm:gap-3 ${gridCols}`}>
         {options.map((option) => {
-          const isSelected = value === option;
+          const optionValue = typeof option === "string" ? option : option.value;
+          const optionLabel = typeof option === "string" ? option : option.label;
+          const isSelected = value === optionValue;
           return (
             <button
-              key={option}
+              key={optionValue}
               type="button"
-              onClick={() => onChange(option)}
+              onClick={() => onChange(optionValue)}
               className={`rounded-lg border-2 py-3 text-xs sm:py-4 sm:text-sm font-bold tracking-tight transition-all active:scale-[0.98] break-keep
                 ${
                   isSelected
@@ -51,7 +53,7 @@ const SelectionCard = ({
                     : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-200"
                 }`}
             >
-              {option}
+              {optionLabel}
             </button>
           );
         })}

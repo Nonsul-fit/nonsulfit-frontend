@@ -12,6 +12,8 @@ import type {
 import { AnalysisInputValidationError } from "../../contracts/analysisInput.ts";
 import {
   mapFormToAnalysisInput,
+  normalizeAcademicTrack,
+  restoreAnalysisInput,
   validateAnalysisInput,
 } from "../analysisInputMapper.ts";
 
@@ -24,7 +26,7 @@ const readFixture = (name: string): AnalysisInputPayload =>
 const createValidForm = (): NonsulFormState => ({
   studentInfo: {
     status: "재학생",
-    track: "인문사회 계열",
+    academicTrack: "HUMANITIES",
     major: "경영학과",
     targetRegion: "서울",
     applicationCount: "6",
@@ -189,12 +191,71 @@ test("analysisInputMapper_allows_zero_representative_when_exam_list_empty", () =
 
 test("analysisInputMapper_rejects_unknown_academic_value", () => {
   const form = createValidForm();
-  form.studentInfo.track = "예체능 계열";
+  form.studentInfo.academicTrack = "예체능 계열";
 
   assert.throws(
     () => mapFormToAnalysisInput(form),
     AnalysisInputValidationError,
   );
+});
+
+for (const [input, expected] of [
+  ["인문사회 계열", "HUMANITIES"],
+  ["문과", "HUMANITIES"],
+  ["인문", "HUMANITIES"],
+  ["자연계열", "NATURAL_SCIENCE"],
+  ["이과", "NATURAL_SCIENCE"],
+  [" HUMANITIES ", "HUMANITIES"],
+] as const) {
+  test(`normalizeAcademicTrack normalizes ${input}`, () => {
+    assert.equal(normalizeAcademicTrack(input), expected);
+  });
+}
+
+test("normalizeAcademicTrack rejects empty values with canonical field name", () => {
+  for (const value of [null, ""]) {
+    assert.throws(
+      () => normalizeAcademicTrack(value),
+      /student\.academicTrack is invalid/,
+    );
+  }
+});
+
+test("analysisInputMapper reads legacy academic without emitting it", () => {
+  const form = createValidForm();
+  delete form.studentInfo.academicTrack;
+  form.studentInfo.academic = "문과";
+  const student = mapFormToAnalysisInput(form).student;
+
+  assert.equal(student.academicTrack, "HUMANITIES");
+  assert.equal(Object.hasOwn(student, "academic"), false);
+});
+
+test("analysisInputMapper prefers academicTrack over legacy academic", () => {
+  const form = createValidForm();
+  form.studentInfo.academicTrack = "NATURAL_SCIENCE";
+  form.studentInfo.academic = "문과";
+
+  assert.equal(
+    mapFormToAnalysisInput(form).student.academicTrack,
+    "NATURAL_SCIENCE",
+  );
+});
+
+test("restoreAnalysisInput canonicalizes stored legacy academic", () => {
+  const restored = restoreAnalysisInput({ student: { academic: "문과" } }) as {
+    student: Record<string, unknown>;
+  };
+
+  assert.deepEqual(restored.student, { academicTrack: "HUMANITIES" });
+});
+
+test("restoreAnalysisInput prefers stored academicTrack", () => {
+  const restored = restoreAnalysisInput({
+    student: { academicTrack: "NATURAL_SCIENCE", academic: "문과" },
+  }) as { student: Record<string, unknown> };
+
+  assert.deepEqual(restored.student, { academicTrack: "NATURAL_SCIENCE" });
 });
 
 test("analysisInputMapper_is_pure_and_deterministic", () => {

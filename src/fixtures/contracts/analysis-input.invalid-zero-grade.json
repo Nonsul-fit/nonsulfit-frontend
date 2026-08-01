@@ -3,7 +3,7 @@
     "grade": 3,
     "repeatYear": 0,
     "gender": "UNKNOWN",
-    "academic": "통합",
+    "academicTrack": "INTEGRATED",
     "desiredDepartment": "",
     "desiredArea": "",
     "applicationCount": 1

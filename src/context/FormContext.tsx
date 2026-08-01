@@ -18,7 +18,7 @@ function createEmptyExamSlot(): MockExamSlot {
 export const FormProvider = ({ children }: { children: React.ReactNode }) => {
   const [studentInfo, setStudentInfo] = useState({
     status: "",
-    track: "",
+    academicTrack: "",
     major: "",
     targetRegion: "",
     essayCount: "",

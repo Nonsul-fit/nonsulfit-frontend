@@ -6,6 +6,7 @@ import {
 } from "../api/chat";
 import { fetchReportDetail, fetchReportList } from "../api/reports";
 import type { AnalysisInputPayload } from "../contracts/analysisInput";
+import { restoreAnalysisInput } from "../adapters/analysisInputMapper";
 import type { ChatMessageViewModel } from "../contracts/chat";
 import type { NormalizedReportList } from "../contracts/reportList";
 import type { ReportMappingResult } from "../contracts/reportResponse";
@@ -60,7 +61,7 @@ export interface ReportListItem {
 
 export const getInputData = async () => {
   const response = await api.get("/nonsulfit/input");
-  return response.data;
+  return restoreAnalysisInput(response.data);
 };
 
 export const saveInputData = async (

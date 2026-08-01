@@ -18,7 +18,7 @@ const Step01 = () => {
     const requiredFields = {
       gender: studentInfo.gender,
       status: studentInfo.status,
-      track: studentInfo.track,
+      academicTrack: studentInfo.academicTrack,
       targetRegion: studentInfo.targetRegion,
       essayCount: studentInfo.essayCount,
     };
@@ -58,9 +58,13 @@ const Step01 = () => {
         <SelectionCard
           title="계열 선택"
           icon="✍️"
-          options={["인문사회 계열", "자연 계열", "통합"]}
-          value={studentInfo.track}
-          onChange={(val) => handleUpdate("track", val)}
+          options={[
+            { label: "인문사회 계열", value: "HUMANITIES" },
+            { label: "자연 계열", value: "NATURAL_SCIENCE" },
+            { label: "통합", value: "INTEGRATED" },
+          ]}
+          value={studentInfo.academicTrack}
+          onChange={(val) => handleUpdate("academicTrack", val)}
         />
 
         <FormCard title="희망 학과" icon="🎯">

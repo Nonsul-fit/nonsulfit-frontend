@@ -1,5 +1,5 @@
 import type {
-  AnalysisAcademic,
+  AcademicTrack,
   AnalysisGender,
   AnalysisInputPayload,
   FormExamSlot,
@@ -8,7 +8,32 @@ import type {
 } from "../contracts/analysisInput";
 import { AnalysisInputValidationError } from "../contracts/analysisInput.ts";
 
-const academicValues: AnalysisAcademic[] = ["인문사회 계열", "자연 계열", "통합"];
+const academicTrackValues: AcademicTrack[] = [
+  "HUMANITIES",
+  "NATURAL_SCIENCE",
+  "MEDICAL",
+  "INTEGRATED",
+];
+
+const academicTrackAliases: Readonly<Record<string, AcademicTrack>> = {
+  인문: "HUMANITIES",
+  문과: "HUMANITIES",
+  인문계열: "HUMANITIES",
+  "인문 계열": "HUMANITIES",
+  인문사회: "HUMANITIES",
+  인문사회계열: "HUMANITIES",
+  "인문사회 계열": "HUMANITIES",
+  자연: "NATURAL_SCIENCE",
+  이과: "NATURAL_SCIENCE",
+  자연계열: "NATURAL_SCIENCE",
+  "자연 계열": "NATURAL_SCIENCE",
+  의약: "MEDICAL",
+  의약계열: "MEDICAL",
+  "의약 계열": "MEDICAL",
+  통합: "INTEGRATED",
+  통합계열: "INTEGRATED",
+  "통합 계열": "INTEGRATED",
+};
 
 export function mapFormToAnalysisInput(
   form: NonsulFormState,
@@ -25,7 +50,9 @@ export function mapFormToAnalysisInput(
       grade: toNumber(studentInfo.grade) ?? 3,
       repeatYear: toRepeatYear(studentInfo.repeatYear, studentInfo.status),
       gender: normalizeGender(studentInfo.gender),
-      academic: toAcademic(studentInfo.academic ?? studentInfo.track),
+      academicTrack: normalizeAcademicTrack(
+        studentInfo.academicTrack ?? studentInfo.academic,
+      ),
       desiredDepartment:
         studentInfo.desiredDepartment ?? studentInfo.major ?? "",
       desiredArea: studentInfo.desiredArea ?? studentInfo.targetRegion ?? "",
@@ -93,8 +120,8 @@ export function validateAnalysisInput(
     throw new AnalysisInputValidationError("student.grade must be greater than 0");
   }
 
-  if (!academicValues.includes(payload.student.academic)) {
-    throw new AnalysisInputValidationError("student.academic is invalid");
+  if (!academicTrackValues.includes(payload.student.academicTrack)) {
+    throw new AnalysisInputValidationError("student.academicTrack is invalid");
   }
 
   if (
@@ -133,12 +160,37 @@ const normalizeGender = (gender?: string): AnalysisGender => {
   return "UNKNOWN";
 };
 
-const toAcademic = (academic?: string): AnalysisAcademic => {
-  if (academicValues.includes(academic as AnalysisAcademic)) {
-    return academic as AnalysisAcademic;
+export const normalizeAcademicTrack = (value: unknown): AcademicTrack => {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  const upper = normalized.toUpperCase();
+  const candidate =
+    academicTrackAliases[normalized] ??
+    (academicTrackValues.includes(upper as AcademicTrack)
+      ? (upper as AcademicTrack)
+      : undefined);
+
+  if (!candidate) {
+    throw new AnalysisInputValidationError("student.academicTrack is invalid");
   }
 
-  throw new AnalysisInputValidationError("student.academic is invalid");
+  return candidate;
+};
+
+export const restoreAnalysisInput = (value: unknown): unknown => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const response = value as Record<string, unknown>;
+  const studentValue = response.student;
+  if (!studentValue || typeof studentValue !== "object" || Array.isArray(studentValue)) {
+    return value;
+  }
+
+  const student = studentValue as Record<string, unknown>;
+  const academicTrack = normalizeAcademicTrack(
+    student.academicTrack ?? student.academic ?? null,
+  );
+  const { academic: _legacyAcademic, ...canonicalStudent } = student;
+
+  return { ...response, student: { ...canonicalStudent, academicTrack } };
 };
 
 const toRepeatYear = (

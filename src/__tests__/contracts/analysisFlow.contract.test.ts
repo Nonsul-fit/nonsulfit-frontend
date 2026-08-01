@@ -25,7 +25,7 @@ test("analysis flow maps input fixture and stores analysisRunId without legacy s
   const mapped = mapFormToAnalysisInput({
     studentInfo: {
       status: "재학생",
-      track: "인문사회 계열",
+      academicTrack: "HUMANITIES",
       major: "경영학과",
       targetRegion: "서울",
       applicationCount: "6",

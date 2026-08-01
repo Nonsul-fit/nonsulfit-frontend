@@ -4,7 +4,11 @@ export type GenderInput = "남자" | "여자" | "MALE" | "FEMALE" | "UNKNOWN" | 
 
 export type AnalysisGender = "MALE" | "FEMALE" | "UNKNOWN";
 
-export type AnalysisAcademic = "인문사회 계열" | "자연 계열" | "통합";
+export type AcademicTrack =
+  | "HUMANITIES"
+  | "NATURAL_SCIENCE"
+  | "MEDICAL"
+  | "INTEGRATED";
 
 export type AnalysisExamType = "MOCK" | "CSAT";
 
@@ -26,7 +30,7 @@ export interface AnalysisInputPayload {
     grade: number;
     repeatYear: number;
     gender: AnalysisGender;
-    academic: AnalysisAcademic;
+    academicTrack: AcademicTrack;
     desiredDepartment: string;
     desiredArea: string;
     applicationCount: number;
@@ -57,7 +61,8 @@ export interface NonsulFormState {
     grade?: string | number;
     status?: string;
     repeatYear?: string | number;
-    track?: string;
+    academicTrack?: string;
+    /** Legacy input only. Never emitted in an analysis request. */
     academic?: string;
     major?: string;
     desiredDepartment?: string;

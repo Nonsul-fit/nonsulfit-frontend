@@ -3,7 +3,7 @@
     "grade": 3,
     "repeatYear": 0,
     "gender": "MALE",
-    "academic": "인문사회 계열",
+    "academicTrack": "HUMANITIES",
     "desiredDepartment": "경영학과",
     "desiredArea": "서울",
     "applicationCount": 6
