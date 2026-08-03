@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 interface DeleteReportModalProps {
   isOpen: boolean;
@@ -6,6 +6,10 @@ interface DeleteReportModalProps {
   isDeleting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  title?: string;
+  description?: ReactNode;
+  confirmLabel?: string;
+  pendingLabel?: string;
 }
 
 const DeleteReportModal = ({
@@ -14,6 +18,10 @@ const DeleteReportModal = ({
   isDeleting,
   onCancel,
   onConfirm,
+  title = "이 분석 리포트를 삭제하시겠습니까?",
+  description = "삭제한 리포트와 관련 상담 내역은 복구할 수 없습니다.",
+  confirmLabel = "영구 삭제",
+  pendingLabel = "삭제 중...",
 }: DeleteReportModalProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -61,7 +69,7 @@ const DeleteReportModal = ({
         className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
       >
         <h2 id="delete-report-title" className="text-xl font-black text-gray-900">
-          이 분석 리포트를 삭제하시겠습니까?
+          {title}
         </h2>
         {reportLabel && (
           <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-sm font-bold text-gray-700">
@@ -72,7 +80,7 @@ const DeleteReportModal = ({
           id="delete-report-description"
           className="mt-4 text-sm leading-6 text-gray-600"
         >
-          삭제한 리포트와 관련 상담 내역은 복구할 수 없습니다.
+          {description}
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <button
@@ -90,7 +98,10 @@ const DeleteReportModal = ({
             onClick={onConfirm}
             className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
           >
-            {isDeleting ? "삭제 중..." : "영구 삭제"}
+            {isDeleting && (
+              <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white align-[-3px]" />
+            )}
+            {isDeleting ? pendingLabel : confirmLabel}
           </button>
         </div>
       </div>

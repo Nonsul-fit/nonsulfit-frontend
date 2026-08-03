@@ -26,6 +26,16 @@ test("membership withdrawal blocks duplicates and clears 401 sessions", () => {
   assert.match(page, /disabled=\{isSubmitting\}/);
 });
 
+test("membership withdrawal uses warning, danger modal, loading and success feedback", () => {
+  const page = source("../../pages/MyPage/MyPage.tsx");
+  const modal = source("../../components/molecules/result/DeleteReportModal.tsx");
+  assert.match(page, /저장된 분석 리포트를 다시 볼 수 없습니다/);
+  assert.match(page, /회원탈퇴가 완료되었습니다/);
+  assert.match(page, /pendingLabel="처리 중\.\.\."/);
+  assert.match(page, /className="mt-5 w-full/);
+  assert.match(modal, /animate-spin/);
+});
+
 test("mypage is protected", () => {
   const app = source("../../App.tsx");
   const protectedStart = app.indexOf('<Route element={<ProtectedRoute />}>');

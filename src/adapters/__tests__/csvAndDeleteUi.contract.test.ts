@@ -35,5 +35,6 @@ test("delete UI always opens a confirmation modal before invoking deletion", () 
   assert.match(list, /setDeleteTarget\(report\)/);
   assert.match(detail, /setIsDeleteModalOpen\(true\)/);
   assert.match(modal, /삭제한 리포트와 관련 상담 내역은 복구할 수 없습니다/);
-  assert.match(modal, /isDeleting \? "삭제 중\.\.\." : "영구 삭제"/);
+  assert.match(modal, /pendingLabel = "삭제 중\.\.\."/);
+  assert.match(modal, /confirmLabel = "영구 삭제"/);
 });
