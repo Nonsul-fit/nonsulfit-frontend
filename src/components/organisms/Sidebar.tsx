@@ -5,6 +5,7 @@ const Sidebar = () => {
     { name: "성적 입력", path: "/home" },
     { name: "분석 리포트", path: "/result" },
     { name: "모의 테스트", path: "/payment" },
+    { name: "마이페이지", path: "/mypage" },
   ];
 
   return (
