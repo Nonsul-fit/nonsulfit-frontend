@@ -1,5 +1,9 @@
 import api from "./axios";
 
+export const withdrawMembership = async (): Promise<void> => {
+  await api.delete("/auth/me", { transformResponse: [] });
+};
+
 export const checkEmail = async (email: string) => {
   const response = await api.post("/auth/check-email", { email });
 

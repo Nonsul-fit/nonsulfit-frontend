@@ -15,6 +15,7 @@ import SuccessPage from "./pages/Payment/SuccessPage";
 import FailPage from "./pages/Payment/FailPage";
 import LandingPage from "./pages/LandingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MyPage from "./pages/MyPage/MyPage";
 
 function App() {
   return (
@@ -38,10 +39,10 @@ function App() {
                   <Route path="/result/:reportId" element={<Result />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/payment/success" element={<SuccessPage />} />
+                  <Route path="/mypage" element={<MyPage />} />
                 </Route>
                 <Route path="/payment/fail" element={<FailPage />} />
 
-                <Route path="/mypage" element={<div>마이페이지</div>} />
               </Route>
             </Routes>
           </FormProvider>

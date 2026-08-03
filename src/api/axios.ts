@@ -26,6 +26,12 @@ const isAuthExcludedUrl = (url?: string) =>
   url?.includes("/signup") ||
   url?.includes("/auth/check-email");
 
+const isMembershipWithdrawal = (url?: string) => url?.endsWith("/auth/me");
+
+export const clearAuthorizationHeader = () => {
+  delete api.defaults.headers.common.Authorization;
+};
+
 api.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
@@ -48,6 +54,7 @@ api.interceptors.response.use(
 
     if (
       originalRequest &&
+      !isMembershipWithdrawal(originalRequest.url) &&
       shouldRefreshAccessToken(error, originalRequest._retry === true) &&
       !isAuthExcludedUrl(originalRequest.url)
     ) {
