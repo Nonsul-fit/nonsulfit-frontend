@@ -12,6 +12,8 @@ const REQUIRED_FIELDS = [
   "expression",
 ] as const;
 
+const OPTIONAL_TEXT_FIELDS = ["comment"] as const;
+
 export class CsvUploadContractError extends Error {}
 
 export function csvUploadMapper(raw: unknown): CsvUploadResponse {
@@ -25,12 +27,25 @@ export function csvUploadMapper(raw: unknown): CsvUploadResponse {
     throw new CsvUploadContractError("CSV upload response is invalid");
   }
 
-  const mappedCompetency = Object.fromEntries(
+  const mappedScores = Object.fromEntries(
     REQUIRED_FIELDS.map((field) => [
       field,
       toNullableNumber(read(competency, field)),
     ]),
-  ) as CsvUploadResponse["input"]["essayCompetency"];
+  ) as Pick<
+    NonNullable<CsvUploadResponse["input"]["essayCompetency"]>,
+    (typeof REQUIRED_FIELDS)[number]
+  >;
+  const mappedText = Object.fromEntries(
+    OPTIONAL_TEXT_FIELDS.map((field) => [
+      field,
+      toNullableString(read(competency, field)),
+    ]),
+  ) as Pick<
+    NonNullable<CsvUploadResponse["input"]["essayCompetency"]>,
+    (typeof OPTIONAL_TEXT_FIELDS)[number]
+  >;
+  const mappedCompetency = { ...mappedScores, ...mappedText };
 
   return {
     input: { essayCompetency: mappedCompetency },
@@ -86,5 +101,7 @@ const toNullableNumber = (value: unknown): number | null => {
   return typeof number === "number" && Number.isFinite(number) ? number : null;
 };
 const toNumber = (value: unknown): number => toNullableNumber(value) ?? 0;
+const toNullableString = (value: unknown): string | null =>
+  typeof value === "string" ? value : null;
 const toString = (value: unknown): string =>
   typeof value === "string" ? value : "";

@@ -70,6 +70,7 @@ const Step02 = () => {
         prompt_understanding: String(values.promptUnderstanding),
         structure: String(values.structure),
         expression: String(values.expression),
+        feedback: values.comment ?? prev.feedback,
       }));
       setUploadStatus("success");
       setUploadMessage(

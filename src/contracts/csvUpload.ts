@@ -6,6 +6,7 @@ export interface CsvUploadResponse {
       promptUnderstanding: number | null;
       structure: number | null;
       expression: number | null;
+      comment?: string | null;
     } | null;
   };
   csvImport: {
@@ -31,4 +32,5 @@ export interface CsvCompetencyValues {
   promptUnderstanding: number;
   structure: number;
   expression: number;
+  comment?: string | null;
 }

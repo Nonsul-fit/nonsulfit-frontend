@@ -17,6 +17,7 @@ test("step2 keeps preference fields outside CSV response synchronization", () =>
   const page = source("pages/Step/Step02.tsx");
   assert.match(page, /content_understanding: String\(values\.contentUnderstanding\)/);
   assert.match(page, /prompt_understanding: String\(values\.promptUnderstanding\)/);
+  assert.match(page, /feedback: values\.comment \?\? prev\.feedback/);
   assert.doesNotMatch(page, /chart_score: String\(values/);
   assert.match(page, /uploadStatus === "uploading"/);
   assert.match(page, /accept="\.csv,text\/csv"/);
