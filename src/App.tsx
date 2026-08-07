@@ -16,6 +16,7 @@ import FailPage from "./pages/Payment/FailPage";
 import LandingPage from "./pages/LandingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MyPage from "./pages/MyPage/MyPage";
+import GuidePage from "./pages/Guide/GuidePage";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
                 <Route path="/home" element={<Step01 />} />
                 <Route path="/step02" element={<Step02 />} />
                 <Route path="/step03" element={<Step03 />} />
+                <Route path="/guide" element={<GuidePage />} />
                 <Route path="/loading" element={<LoadingPage />} />
                 <Route element={<ProtectedRoute />}>
                   <Route path="/result" element={<ResultList />} />
